@@ -91,6 +91,15 @@
         return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
+    function getReadableColumnLabel(col, index) {
+        const raw = capitalizeFirstLetter(col?.label || '');
+        if (raw) return raw;
+
+        if (col?.kind === 'serial') return 'Sr No';
+        if (col?.kind === 'blank') return `Blank ${index + 1}`;
+        return `Question ${index}`;
+    }
+
     const imageDataCache = new Map();
 
     async function blobToDataUrl(blob) {
@@ -300,7 +309,7 @@
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 10;
         const availableWidth = pageWidth - (margin * 2);
-        const headerFill = [226, 232, 240];
+        const headerFill = [255, 255, 255];
         const headerTextColor = [15, 23, 42];
         const bodyTextColor = [17, 24, 39];
         const rowPaddingX = 2.5;
@@ -354,6 +363,7 @@
             const headerHeight = Math.max(1, ...headerLineCounts) * lineHeight + (rowPaddingY * 2);
 
             let x = margin;
+            doc.setDrawColor(148, 163, 184);
             doc.setFillColor(...headerFill);
             doc.setTextColor(...headerTextColor);
             doc.setFont('helvetica', 'bold');
@@ -361,7 +371,7 @@
 
             columns.forEach((col, index) => {
                 const width = columnWidths[index];
-                const lines = wrapText(col.label, width);
+                const lines = wrapText(getReadableColumnLabel(col, index), width);
                 doc.rect(x, y, width, headerHeight, 'F');
                 doc.rect(x, y, width, headerHeight);
                 doc.text(lines, x + rowPaddingX, y + rowPaddingY + 3.5);
