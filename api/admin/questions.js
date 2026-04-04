@@ -37,6 +37,48 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    if (req.method === 'PUT' || req.method === 'PATCH') {
+      const url = new URL(req.url, 'http://localhost');
+      const id = url.searchParams.get('id');
+      if (!id) {
+        json(res, 400, { error: 'Missing id' });
+        return;
+      }
+
+      const body = await readJson(req);
+      const payload = {};
+
+      if (typeof body.question === 'string') payload.question = body.question;
+      if (typeof body.type === 'string') payload.type = body.type;
+      if (Object.prototype.hasOwnProperty.call(body, 'options')) payload.options = body.options;
+      if (Object.prototype.hasOwnProperty.call(body, 'required')) payload.required = !!body.required;
+
+      if (Object.keys(payload).length === 0) {
+        json(res, 400, { error: 'No fields provided to update' });
+        return;
+      }
+
+      const r = await supabaseFetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/questions?id=eq.${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      }, 'Update question');
+
+      const data = await r.json().catch(() => null);
+      if (!r.ok) {
+        json(res, 400, { error: data?.message || 'Failed to update question', details: data });
+        return;
+      }
+
+      json(res, 200, { ok: true, question: Array.isArray(data) ? data[0] : data });
+      return;
+    }
+
     if (req.method === 'DELETE') {
       const url = new URL(req.url, 'http://localhost');
       const id = url.searchParams.get('id');

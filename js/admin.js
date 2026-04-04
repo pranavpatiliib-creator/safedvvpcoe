@@ -58,6 +58,7 @@ let selectedEventData = null;
 let allResponses = [];
 let allQuestions = [];
 let tempEventQuestions = []; // Temporary storage for questions before publishing
+let editingQuestionId = null;
 
 async function apiRequest(path, { method = 'GET', token, body } = {}) {
     const headers = {};
@@ -330,14 +331,45 @@ function openAddQuestionModal() {
         alert('Please select an event first');
         return;
     }
+    openQuestionModal('add');
+}
+
+function openQuestionModal(mode, question) {
+    if (!addQuestionModal || !addQuestionForm) return;
+
+    editingQuestionId = mode === 'edit' && question ? String(question.id) : null;
     addQuestionModal.style.display = 'flex';
     addQuestionForm.reset();
+    optionsGroup.style.display = 'none';
+
+    const titleEl = addQuestionModal.querySelector('.modal-header h2');
+    const submitBtn = addQuestionForm.querySelector('button[type="submit"]');
+
+    if (mode === 'edit' && question) {
+        if (titleEl) titleEl.textContent = 'Edit Question';
+        if (submitBtn) submitBtn.textContent = 'Save Changes';
+
+        document.getElementById('questionText').value = question.question || '';
+        document.getElementById('questionType').value = question.type || '';
+        document.getElementById('questionRequired').checked = question.required !== false;
+        document.getElementById('questionOptions').value = Array.isArray(question.options) ? question.options.join(', ') : '';
+        updateQuestionTypeDisplay();
+    } else {
+        if (titleEl) titleEl.textContent = 'Add Question to Event';
+        if (submitBtn) submitBtn.textContent = 'Add Question';
+        document.getElementById('questionRequired').checked = true;
+    }
 }
 
 function closeAddQuestionModal() {
     addQuestionModal.style.display = 'none';
     addQuestionForm.reset();
     optionsGroup.style.display = 'none';
+    editingQuestionId = null;
+    const titleEl = addQuestionModal.querySelector('.modal-header h2');
+    const submitBtn = addQuestionForm.querySelector('button[type="submit"]');
+    if (titleEl) titleEl.textContent = 'Add Question to Event';
+    if (submitBtn) submitBtn.textContent = 'Add Question';
 }
 
 function updateQuestionTypeDisplay() {
@@ -425,6 +457,81 @@ addQuestionForm.addEventListener('submit', async (e) => {
 });
 
 // 🔹 TAB MANAGEMENT
+addQuestionForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    const questionText = document.getElementById('questionText').value.trim();
+    const questionType = document.getElementById('questionType').value;
+    const questionOptions = document.getElementById('questionOptions').value.trim();
+    const isRequired = document.getElementById('questionRequired').checked;
+
+    if (!questionText || !questionType) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    if (['select', 'radio', 'checkbox'].includes(questionType) && !questionOptions) {
+        alert('Please add options for this question type');
+        return;
+    }
+
+    try {
+        const client = await window.waitForSupabaseClient();
+        const { data: sessionData } = await client.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        addQuestionBtn.disabled = true;
+        addQuestionBtn.textContent = 'â³';
+
+        const optionsArray = questionOptions
+            ? questionOptions.split(',').map(opt => opt.trim()).filter(Boolean)
+            : null;
+
+        if (editingQuestionId) {
+            await apiRequest(`/api/admin/questions?id=${encodeURIComponent(editingQuestionId)}`, {
+                method: 'PATCH',
+                token,
+                body: {
+                    question: questionText,
+                    type: questionType,
+                    options: optionsArray || null,
+                    required: !!isRequired
+                }
+            });
+            alert('âœ“ Question updated successfully!');
+        } else {
+            await apiRequest('/api/admin/questions', {
+                method: 'POST',
+                token,
+                body: {
+                    questions: [{
+                        event_id: selectedEventId,
+                        question: questionText,
+                        type: questionType,
+                        options: optionsArray || null,
+                        required: !!isRequired
+                    }]
+                }
+            });
+            alert('âœ“ Question added successfully!');
+        }
+
+        closeAddQuestionModal();
+        await loadEventQuestions(selectedEventId);
+        editingQuestionId = null;
+    } catch (error) {
+        console.error('Error saving question:', error);
+        alert('âŒ Failed to save question: ' + error.message);
+    } finally {
+        if (addQuestionBtn) {
+            addQuestionBtn.disabled = false;
+            addQuestionBtn.textContent = 'âž• Add Question';
+        }
+    }
+}, true);
+
 function switchTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -481,6 +588,7 @@ function displayQuestions(questions) {
                 </p>
             </div>
             <div class="question-actions">
+                <button class="btn-secondary" onclick="openEditQuestionModal('${escapeJsString(String(q.id))}')">Edit</button>
                 <button class="btn-delete" onclick="deleteQuestion('${escapeJsString(String(q.id))}')">Delete</button>
             </div>
         </div>
@@ -508,6 +616,15 @@ async function deleteQuestion(questionId) {
         console.error('Error deleting question:', error);
         alert('❌ Failed to delete question: ' + error.message);
     }
+}
+
+function openEditQuestionModal(questionId) {
+    const question = allQuestions.find(q => String(q.id) === String(questionId));
+    if (!question) {
+        alert('Question not found');
+        return;
+    }
+    openQuestionModal('edit', question);
 }
 
 // Add event listeners with proper debug logging
@@ -678,29 +795,35 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         if (!questionRes.ok) throw new Error(questionData?.error || 'Failed to fetch questions');
         allQuestions = questionData?.questions || [];
 
+        // Show questions immediately, even if response loading fails later.
+        displayQuestions(allQuestions);
+
         // Fetch responses via admin API (responses table is not public-readable)
-        const { data: sessionData } = await client.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) throw new Error('Not authenticated');
+        try {
+            const { data: sessionData } = await client.auth.getSession();
+            const token = sessionData?.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
 
-        const out = await apiRequest(`/api/admin/responses?event_id=${encodeURIComponent(eventId)}`, { token });
-        allResponses = out.responses || [];
+            const out = await apiRequest(`/api/admin/responses?event_id=${encodeURIComponent(eventId)}`, { token });
+            allResponses = out.responses || [];
+        } catch (responseError) {
+            console.error('Error loading responses:', responseError);
+            allResponses = [];
+        }
 
-        // Display responses
+        // Display responses even if empty or unavailable.
         displayResponses(allResponses);
 
         // Update response count
         responseCount.textContent = `${allResponses.length} response${allResponses.length !== 1 ? 's' : ''}`;
-
-        // Load questions for the questions tab
-        displayQuestions(allQuestions);
 
         // Enable the add question button
         if (addQuestionBtn) {
             addQuestionBtn.disabled = false;
         }
     } catch (error) {
-        console.error('Error loading responses:', error);
+        console.error('Error loading event details:', error);
+        displayQuestions([]);
         responsesTable.innerHTML = '<div class="error">Failed to load responses</div>';
         if (addQuestionBtn) {
             addQuestionBtn.disabled = true;

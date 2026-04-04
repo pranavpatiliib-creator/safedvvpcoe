@@ -14,23 +14,30 @@
 </head>
 
 <body>
- <!-- 🔹 HEADER / NAVBAR -->
+    <!-- 🔹 HEADER / NAVBAR -->
+    <!-- 🔹 NAVBAR -->
     <header>
         <nav class="navbar">
 
-            <div class="logo-container">
+            <!-- 🔹 LOGO + TEXT -->
+            <a href="index.html" class="logo-container">
                 <img src="../images/logo.jpeg" alt="logo">
                 <span>First Year Engineering</span>
-            </div>
+            </a>
 
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="#">About</a></li>
+            <!-- 🔹 NAV LINKS -->
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="faculty.html">Faculties</a></li>
                 <li><a href="association.html">Association</a></li>
-                <li><a href="#">Events</a></li>
-                <li><a href="ga>Gallery</a></li>
-                <li><a href=" faculty.html">Faculty</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="#">Gallery</a></li>
             </ul>
+
+            <!-- 🔹 HAMBURGER -->
+            <div class="hamburger" onclick="toggleMenu()">
+                ☰
+            </div>
 
         </nav>
     </header>
