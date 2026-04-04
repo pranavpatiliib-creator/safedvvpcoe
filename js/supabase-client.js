@@ -26,6 +26,10 @@ function loadScriptOnce(src) {
 
 async function initSupabaseClient() {
     try {
+        if (typeof window.loadSupabaseConfig === 'function') {
+            await window.loadSupabaseConfig();
+        }
+
         if (typeof supabase === 'undefined') {
             // First try a local vendored copy (works even if CDNs are blocked).
             // This does not require any HTML changes.
@@ -65,8 +69,8 @@ async function initSupabaseClient() {
             throw new Error('Supabase library not loaded (window.supabase is undefined)');
         }
 
-        const url = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : CONFIG?.SUPABASE_URL);
-        const key = (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : CONFIG?.SUPABASE_ANON_KEY);
+        const url = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : window.CONFIG?.SUPABASE_URL);
+        const key = (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : window.CONFIG?.SUPABASE_ANON_KEY);
 
         if (!url || !key) {
             throw new Error('Supabase config missing (load `js/config.js` before `js/supabase-client.js`)');

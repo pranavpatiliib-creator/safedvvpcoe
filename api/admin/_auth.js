@@ -13,10 +13,15 @@ function getBearerToken(req) {
   return parts[1];
 }
 
+function normalizeEnvValue(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim().replace(/^["']|["']$/g, '').replace(/;$/, '');
+}
+
 async function requireAdmin(req, res) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const adminEmailsRaw = process.env.ADMIN_EMAILS || '';
+  const supabaseUrl = normalizeEnvValue(process.env.SUPABASE_URL);
+  const serviceKey = normalizeEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const adminEmailsRaw = normalizeEnvValue(process.env.ADMIN_EMAILS);
 
   if (!supabaseUrl || !serviceKey) {
     json(res, 500, { error: 'Server misconfigured: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' });
@@ -30,7 +35,7 @@ async function requireAdmin(req, res) {
   }
 
   // Validate token using Supabase Auth admin endpoint (no extra deps).
-  const authUrl = `${supabaseUrl}/auth/v1/user`;
+  const authUrl = `${supabaseUrl.replace(/\/$/, '')}/auth/v1/user`;
   const r = await fetch(authUrl, {
     headers: {
       apikey: serviceKey,
@@ -67,4 +72,3 @@ async function readJson(req) {
 }
 
 module.exports = { requireAdmin, readJson, json };
-
