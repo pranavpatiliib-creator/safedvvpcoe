@@ -1,0 +1,244 @@
+/* 🔹 GLOBAL */
+body {
+    background: #f5f7fa;
+    font-family: 'Poppins', sans-serif;
+    color: #1a2a44;
+}
+
+/* 🔹 COMMON CONTAINER */
+.assoc-container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 60px 20px;
+}
+
+/* 🔹 INTRO SECTION */
+.assoc-intro {
+    text-align: center;
+    padding: 120px 20px 80px;
+    background: linear-gradient(to bottom, #f8fafc, #eef1f5);
+    margin-top: 0px;
+}
+
+.assoc-intro h2 {
+    font-size: 38px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.assoc-intro p {
+    max-width: 700px;
+    margin: auto;
+    color: #555;
+    line-height: 1.7;
+}
+
+/* GOLD LINE */
+.assoc-intro::after {
+    content: "";
+    width: 70px;
+    height: 3px;
+    background: #c89b3c;
+    display: block;
+    margin: 25px auto 0;
+}
+
+/* 🔹 SECTION TITLE */
+.assoc-container h2 {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+/* GOLD UNDERLINE */
+.assoc-container h2::after {
+    content: "";
+    width: 60px;
+    height: 3px;
+    background: #c89b3c;
+    display: block;
+    margin: 10px auto;
+}
+
+/* 🔹 ACTIVITY CARD IMAGE */
+.activity-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* 🔹 CARD IMPROVEMENT */
+.activity-card {
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.activity-card:hover img {
+    transform: scale(1.05);
+    transition: 0.4s;
+}
+
+/* 🔹 TEXT */
+.assoc-container p {
+    text-align: center;
+    color: #555;
+    line-height: 1.7;
+    max-width: 750px;
+    margin: auto;
+}
+
+/* 🔹 SECTION SPACING + DIVIDER */
+.assoc-about,
+.assoc-vision,
+.assoc-agenda,
+.assoc-activities {
+    background: #f5f7fa;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* 🔹 VISION GRID */
+.vision-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+}
+
+/* 🔹 VISION CARD */
+.vision-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+
+    border: 1px solid #eaeaea;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+
+    transition: 0.3s;
+}
+
+.vision-card:hover {
+    transform: translateY(-6px);
+}
+
+/* 🔹 OBJECTIVES LIST */
+.assoc-agenda ul {
+    max-width: 600px;
+    margin: 30px auto;
+    color: #555;
+}
+
+.assoc-agenda li {
+    margin: 12px 0;
+    padding-left: 10px;
+    position: relative;
+}
+
+/* 🔥 FIX TEXT VISIBILITY */
+.assoc-intro h2,
+.assoc-container h2 {
+    color: #1a2a44 !important;
+    /* dark navy */
+}
+
+.assoc-intro p,
+.assoc-container p {
+    color: #555 !important;
+    /* readable grey */
+}
+
+/* bullet style */
+.assoc-agenda li::before {
+    content: "•";
+    color: #c89b3c;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* 🔹 ACTIVITIES GRID */
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+/* 🔹 ACTIVITY CARD */
+.activity-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+
+    border: 1px solid #eaeaea;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+
+    transition: 0.3s;
+}
+
+.activity-card:hover {
+    transform: translateY(-5px);
+}
+
+/* 🔹 MEMBER SECTION (optional if added below) */
+/* 🔹 MEMBER GRID */
+.member-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+/* 🔹 CARD */
+.member-card {
+    background: #ffffff;
+    padding: 30px 20px;
+    text-align: center;
+    border-radius: 12px;
+
+    border: 1px solid #eaeaea;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+
+    transition: 0.3s;
+}
+
+/* 🔥 HOVER EFFECT */
+.member-card:hover {
+    transform: translateY(-6px);
+}
+
+/* 🔹 ICON */
+.member-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+/* 🔹 NAME */
+.member-card h3 {
+    font-size: 18px;
+    color: #1a2a44;
+    margin-bottom: 5px;
+}
+
+/* 🔹 ROLE */
+.member-card .role {
+    font-size: 14px;
+    color: #c89b3c;
+    font-weight: 600;
+}
+
+/* 🔹 RESPONSIVE */
+@media (max-width: 768px) {
+
+    .assoc-intro {
+        padding: 100px 15px 60px;
+    }
+
+    .assoc-container {
+        padding: 40px 15px;
+    }
+
+}

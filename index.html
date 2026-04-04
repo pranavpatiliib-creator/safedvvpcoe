@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Year Engineering</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- 🔹 NAVBAR -->
+    <header>
+        <nav class="navbar">
+
+            <!-- 🔹 LOGO + TEXT -->
+            <a href="index.html" class="logo-container">
+                <img src="../images/logo.jpeg" alt="logo">
+                <span>First Year Engineering</span>
+            </a>
+
+            <!-- 🔹 NAV LINKS -->
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="faculty.html">Faculties</a></li>
+                <li><a href="association.html">Association</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="#">Gallery</a></li>
+            </ul>
+
+            <!-- 🔹 HAMBURGER -->
+            <div class="hamburger" onclick="toggleMenu()">
+                ☰
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- 🔹 HERO SLIDER -->
+    <section class="hero">
+
+        <div class="slider">
+
+            <div class="slide active" style="background-image: url('images/collegephoto.jpg');">
+                <div class="overlay"></div>
+                <div class="content">
+                    <h1>Welcome to First Year Engineering</h1>
+                    <p>Building Strong Foundations for Future Engineers</p>
+                    <button onclick="window.location.href='events.html'">Explore More</button>
+                </div>
+
+    </section>
+    <!-- 🔹 VISION MISSION DEVELOPMENT -->
+    <section class="vmd">
+        <h2 class="vmd-title">Our Foundation</h2>
+        <p class="vmd-subtitle">Guiding principles of our department</p>
+        <div class="vmd-cards">
+
+            <div class="vmd-card">
+                <h3>🎯 Vision</h3>
+                <p>
+                    To create a strong academic foundation for first year engineering students
+                    by fostering innovation, critical thinking, and technical excellence.
+                    We aim to nurture future engineers who are capable of solving real-world
+                    problems with creativity and responsibility.
+                </p>
+            </div>
+
+            <div class="vmd-card">
+                <h3>🚀 Mission</h3>
+                <p>
+                    To provide high-quality education through a balanced approach of theory
+                    and practical learning. We encourage students to participate in technical
+                    activities, workshops, and collaborative projects that enhance their
+                    skills, confidence, and teamwork abilities.
+                </p>
+            </div>
+
+            <div class="vmd-card">
+                <h3>📈 Development</h3>
+                <p>
+                    The department focuses on overall development of students by promoting
+                    academic growth, communication skills, leadership qualities, and
+                    participation in extracurricular activities. Special emphasis is given
+                    to innovation, problem-solving, and industry readiness.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <!-- 🔹 LEFT -->
+            <div class="footer-col">
+                <h3>First Year Engineering</h3>
+                <p>
+                    Department of First Year Engineering <br>
+                    Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar <br>
+                    Building strong foundations for future engineers.
+                </p>
+            </div>
+
+            <!-- 🔹 QUICK LINKS -->
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="faculty.html">Faculty</a></li>
+                    <li><a href="association.html">Association</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="#">Gallery</a></li>
+                </ul>
+            </div>
+
+            <!-- 🔹 CONTACT -->
+            <div class="footer-col">
+                <h3>Connect With Us</h3>
+                <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
+                <p>📧 pddvpcoesafe@gmail.com</p>
+                <p>📷 @pdvvpcoe.safe</p>
+            </div>
+
+        </div>
+
+        <!-- 🔹 BOTTOM -->
+        <div class="footer-bottom">
+            <p>
+                © 2026 First Year Engineering Department. All rights reserved.
+            </p>
+        </div>
+
+    </footer>
+
+    <!-- 🔹 SCRIPT -->
+    <script>
+        let slides = document.querySelectorAll(".slide");
+        let index = 0;
+
+        function changeSlide() {
+            slides[index].classList.remove("active");
+            index = (index + 1) % slides.length;
+            slides[index].classList.add("active");
+        }
+
+        setInterval(changeSlide, 4000);
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+
+        const cards = document.querySelectorAll(".vmd-card");
+
+        window.addEventListener("scroll", () => {
+            let trigger = window.innerHeight * 0.85;
+
+            cards.forEach(card => {
+                let top = card.getBoundingClientRect().top;
+
+                if (top < trigger) {
+                    card.style.opacity = "1";
+                    card.style.transform = "translateY(0)";
+                }
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>

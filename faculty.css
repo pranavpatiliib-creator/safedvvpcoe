@@ -1,0 +1,144 @@
+/* 🔹 RESET */
+/* 🔹 HEADING FIX */
+.faculty-intro h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a2a44;
+    /* dark visible color */
+    position: relative;
+    display: inline-block;
+}
+
+/* 🔥 GOLDEN LINE BELOW */
+.faculty-intro h2::after {
+    content: "";
+    width: 70px;
+    height: 3px;
+    background: #c89b3c;
+    /* golden color */
+    display: block;
+    margin: 10px auto 0;
+    border-radius: 5px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 🔹 BODY (override dark theme) */
+body {
+    background: #f5f7fa !important;
+    font-family: 'Poppins', sans-serif;
+    color: #1a2a44;
+}
+
+/* 🔹 INTRO SECTION */
+.faculty-intro {
+    text-align: center;
+    padding: 100px 20px 40px;
+    background: #f5f7fa;
+}
+
+.faculty-intro h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.faculty-intro p {
+    max-width: 750px;
+    margin: auto;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* 🔹 FACULTY SECTION */
+.faculty {
+    background: #f5f7fa !important;
+    padding: 40px 40px 80px;
+}
+
+/* 🔹 GRID */
+.faculty-container {
+    max-width: 1200px;
+    margin: auto;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+}
+
+/* 🔹 CARD */
+.faculty-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-align: center;
+
+    border: 1px solid #e6e6e6;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+    transition: 0.3s;
+}
+
+/* 🔹 IMAGE (FIXED STYLE - NO CUT) */
+.faculty-card img {
+    width: 140px;
+    height: 160px;
+    object-fit: cover;
+    /* change to contain if needed */
+    border-radius: 10px;
+
+    margin-bottom: 15px;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔹 NAME */
+.faculty-card h3 {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #1a2a44;
+}
+
+/* 🔹 DESIGNATION */
+.designation {
+    font-weight: 600;
+    color: #1a2a44;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+/* 🔹 TEXT */
+.faculty-card p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* 🔹 EXPERIENCE */
+.faculty-card p strong {
+    color: #000;
+}
+
+/* 🔹 HOVER (SUBTLE, FORMAL) */
+.faculty-card:hover {
+    transform: translateY(-6px);
+}
+
+/* 🔹 FIX BROKEN IMAGES */
+.faculty-card img {
+    background: #f0f0f0;
+}
+
+/* 🔹 RESPONSIVE */
+@media (max-width: 768px) {
+    .faculty {
+        padding: 30px 15px;
+    }
+
+    .faculty-intro {
+        padding: 80px 15px 30px;
+    }
+}

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Association | First Year Engineering</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="association.css">
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+
+            <!-- 🔹 LOGO + TEXT -->
+            <a href="index.html" class="logo-container">
+                <img src="../images/logo.jpeg" alt="logo">
+                <span>First Year Engineering</span>
+            </a>
+
+            <!-- 🔹 NAV LINKS -->
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="faculty.html">Faculties</a></li>
+                <li><a href="association.html">Association</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="#">Gallery</a></li>
+            </ul>
+
+            <!-- 🔹 HAMBURGER -->
+            <div class="hamburger" onclick="toggleMenu()">
+                ☰
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- 🔹 INTRO -->
+    <section class="assoc-intro">
+        <h2>Student Association</h2>
+        <p>
+            The First Year Engineering Student Association is dedicated to building
+            leadership, creativity, and technical excellence among students. It plays
+            a vital role in shaping students’ personalities through various academic
+            and extracurricular activities.
+        </p>
+    </section>
+
+    <!-- 🔹 ABOUT -->
+    <section class="assoc-about">
+        <div class="assoc-container">
+
+            <h2>About the Association</h2>
+
+            <p>
+                The association acts as a platform for students to collaborate,
+                innovate, and grow beyond academics. It encourages participation in
+                technical events, cultural programs, and sports activities to ensure
+                holistic development of every student.
+            </p>
+
+        </div>
+    </section>
+
+
+    <div class="activity-grid">
+
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475" alt="Technical Events">
+            <h3>Technical Events</h3>
+            <p>Workshops, coding sessions, and project exhibitions.</p>
+        </div>
+
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1521335629791-ce4aec67dd47" alt="Cultural Programs">
+            <h3>Cultural Programs</h3>
+            <p>Freshers, competitions, and celebrations.</p>
+        </div>
+
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1505842465776-3bfd1884f3a5" alt="Sports Activities">
+            <h3>Sports Activities</h3>
+            <p>Indoor and outdoor sports competitions.</p>
+        </div>
+
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978" alt="Skill Development">
+            <h3>Skill Development</h3>
+            <p>Communication, leadership, and personality growth.</p>
+        </div>
+
+    </div>
+
+    <section class="assoc-members">
+        <div class="assoc-container">
+
+            <h2>Association Members</h2>
+
+            <div class="member-grid">
+
+                <div class="member-card">
+                    <div class="member-icon">👑</div>
+                    <h3>Niddhi Gupta</h3>
+                    <p class="role">President</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">⭐</div>
+                    <h3>Anushka Mote</h3>
+                    <p class="role">Vice President</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">📝</div>
+                    <h3>Samruddhi Ghodke</h3>
+                    <p class="role">Secretary</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">💰</div>
+                    <h3>Pranav Patil</h3>
+                    <p class="role">Treasurer</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">💻</div>
+                    <h3>Khushi Kalekar</h3>
+                    <p class="role">Technical Secretary</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">💻</div>
+                    <h3>Nandini Yeole</h3>
+                    <p class="role">Technical Secretary</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">🎭</div>
+                    <h3>Parita Solanki</h3>
+                    <p class="role">Cultural Secretary</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">🎭</div>
+                    <h3>Shantanu Kadu</h3>
+                    <p class="role">Cultural Secretary</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">🏅</div>
+                    <h3>Aditya Raskonda</h3>
+                    <p class="role">Sports Coordinator</p>
+                </div>
+
+                <div class="member-card">
+                    <div class="member-icon">🏅</div>
+                    <h3>Sarika Kapse</h3>
+                    <p class="role">Sports Coordinator</p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 🔹 JS -->
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+
+    </script>
+
+</body>
+
+</html>

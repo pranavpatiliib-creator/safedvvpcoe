@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration - First Year Engineering</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+
+            <!-- 🔹 LOGO + TEXT -->
+            <a href="index.html" class="logo-container">
+                <img src="../images/logo.jpeg" alt="logo">
+                <span>First Year Engineering</span>
+            </a>
+
+            <!-- 🔹 NAV LINKS -->
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="faculty.html">Faculties</a></li>
+                <li><a href="association.html">Association</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="#">Gallery</a></li>
+            </ul>
+
+            <!-- 🔹 HAMBURGER -->
+            <div class="hamburger" onclick="toggleMenu()">
+                ☰
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- 🔹 REGISTRATION SECTION -->
+    <section class="registration-section">
+        <div class="registration-wrapper">
+            <div id="eventDetails" class="event-details">
+                <div class="loading">Loading event details...</div>
+            </div>
+
+            <form id="registrationForm" class="registration-form" style="display: none;">
+                <h2>Register for Event</h2>
+                <div id="questionsContainer"></div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">Submit Registration</button>
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+                </div>
+            </form>
+
+            <div id="successMessage" class="success-message" style="display: none;">
+                <h2>Registration Successful!</h2>
+                <p>Thank you for registering. Check your email for confirmation.</p>
+                <a href="events.html" class="btn btn-primary">Back to Events</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <!-- 🔹 LEFT -->
+            <div class="footer-col">
+                <h3>First Year Engineering</h3>
+                <p>
+                    Department of First Year Engineering <br>
+                    Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar <br>
+                    Building strong foundations for future engineers.
+                </p>
+            </div>
+
+            <!-- 🔹 QUICK LINKS -->
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="faculty.html">Faculty</a></li>
+                    <li><a href="association.html">Association</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="#">Gallery</a></li>
+                </ul>
+            </div>
+
+            <!-- 🔹 CONTACT -->
+            <div class="footer-col">
+                <h3>Connect With Us</h3>
+                <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
+                <p>📧 pddvpcoesafe@gmail.com</p>
+                <p>📷 @pdvvpcoe.safe</p>
+            </div>
+
+        </div>
+
+        <!-- 🔹 BOTTOM -->
+        <div class="footer-bottom">
+            <p>
+                © 2026 First Year Engineering Department. All rights reserved.
+            </p>
+        </div>
+
+    </footer>
+
+    <!-- 🔹 SCRIPT -->
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+    </script>
+
+    <!-- Official Supabase Library (Production-ready for Vercel) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/main.min.js"></script>
+
+    <!-- Local Development Credentials -->
+    <script src="config-local.js"></script>
+
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/event-detail.js"></script>
+</body>
+
+</html>
