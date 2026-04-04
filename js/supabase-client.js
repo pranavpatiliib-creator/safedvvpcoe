@@ -26,8 +26,9 @@ function loadScriptOnce(src) {
 
 async function initSupabaseClient() {
     try {
+        // Refresh config in the background, but do not block client startup on it.
         if (typeof window.loadSupabaseConfig === 'function') {
-            await window.loadSupabaseConfig();
+            window.loadSupabaseConfig().catch(() => {});
         }
 
         if (typeof supabase === 'undefined') {
@@ -69,8 +70,8 @@ async function initSupabaseClient() {
             throw new Error('Supabase library not loaded (window.supabase is undefined)');
         }
 
-        const url = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : window.CONFIG?.SUPABASE_URL);
-        const key = (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : window.CONFIG?.SUPABASE_ANON_KEY);
+        const url = window.CONFIG?.SUPABASE_URL || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : null);
+        const key = window.CONFIG?.SUPABASE_ANON_KEY || (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : null);
 
         if (!url || !key) {
             throw new Error('Supabase config missing (load `js/config.js` before `js/supabase-client.js`)');
@@ -87,7 +88,7 @@ async function initSupabaseClient() {
     }
 }
 
-window.waitForSupabaseClient = async function waitForSupabaseClient(timeoutMs = 3000) {
+window.waitForSupabaseClient = async function waitForSupabaseClient(timeoutMs = 10000) {
     const start = Date.now();
 
     // Kick off init if it hasn't succeeded yet.
