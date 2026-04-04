@@ -33,6 +33,14 @@ const pdfBlankColumnsList = document.getElementById('pdfBlankColumnsList');
 const pdfGenerateBtn = document.getElementById('pdfGenerateBtn');
 const pdfCloseBtn = document.getElementById('pdfCloseBtn');
 const pdfHeadingInput = document.getElementById('pdfHeadingInput');
+const wordOptionsPanel = document.getElementById('wordOptionsPanel');
+const wordColumnChecklist = document.getElementById('wordColumnChecklist');
+const wordBlankColumnInput = document.getElementById('wordBlankColumnInput');
+const wordAddBlankColumnBtn = document.getElementById('wordAddBlankColumnBtn');
+const wordBlankColumnsList = document.getElementById('wordBlankColumnsList');
+const wordGenerateBtn = document.getElementById('wordGenerateBtn');
+const wordCloseBtn = document.getElementById('wordCloseBtn');
+const wordHeadingInput = document.getElementById('wordHeadingInput');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -69,6 +77,8 @@ let tempEventQuestions = []; // Temporary storage for questions before publishin
 let editingQuestionId = null;
 let pdfQuestionSelectionState = {};
 let pdfBlankColumns = [];
+let wordQuestionSelectionState = {};
+let wordBlankColumns = [];
 
 async function apiRequest(path, { method = 'GET', token, body } = {}) {
     const headers = {};
@@ -107,6 +117,13 @@ function resetPdfOptions() {
     renderPdfOptionsPanel();
 }
 
+function resetWordOptions() {
+    wordQuestionSelectionState = {};
+    wordBlankColumns = [];
+    if (wordHeadingInput) wordHeadingInput.value = '';
+    renderWordOptionsPanel();
+}
+
 function openPdfOptionsPanel() {
     if (!selectedEventId) {
         alert('Please select an event first');
@@ -114,6 +131,7 @@ function openPdfOptionsPanel() {
     }
 
     if (pdfOptionsPanel) {
+        closeWordOptionsPanel();
         pdfOptionsPanel.style.display = 'block';
         if (pdfHeadingInput && !pdfHeadingInput.value.trim()) {
             pdfHeadingInput.value = selectedEventData?.title || selectedEventTitle?.textContent || '';
@@ -126,6 +144,29 @@ function openPdfOptionsPanel() {
 function closePdfOptionsPanel() {
     if (pdfOptionsPanel) {
         pdfOptionsPanel.style.display = 'none';
+    }
+}
+
+function openWordOptionsPanel() {
+    if (!selectedEventId) {
+        alert('Please select an event first');
+        return;
+    }
+
+    if (wordOptionsPanel) {
+        closePdfOptionsPanel();
+        wordOptionsPanel.style.display = 'block';
+        if (wordHeadingInput && !wordHeadingInput.value.trim()) {
+            wordHeadingInput.value = selectedEventData?.title || selectedEventTitle?.textContent || '';
+        }
+        renderWordOptionsPanel();
+        wordOptionsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function closeWordOptionsPanel() {
+    if (wordOptionsPanel) {
+        wordOptionsPanel.style.display = 'none';
     }
 }
 
@@ -150,6 +191,29 @@ function removePdfBlankColumn(index) {
     if (index < 0 || index >= pdfBlankColumns.length) return;
     pdfBlankColumns.splice(index, 1);
     renderPdfOptionsPanel();
+}
+
+function addWordBlankColumnFromInput() {
+    if (!wordBlankColumnInput) return;
+
+    const name = wordBlankColumnInput.value.trim();
+    if (!name) return;
+
+    const exists = wordBlankColumns.some(item => item.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        alert('That blank column already exists.');
+        return;
+    }
+
+    wordBlankColumns.push(name);
+    wordBlankColumnInput.value = '';
+    renderWordOptionsPanel();
+}
+
+function removeWordBlankColumn(index) {
+    if (index < 0 || index >= wordBlankColumns.length) return;
+    wordBlankColumns.splice(index, 1);
+    renderWordOptionsPanel();
 }
 
 function renderPdfOptionsPanel() {
@@ -189,6 +253,43 @@ function renderPdfOptionsPanel() {
     pdfBlankColumnsList.innerHTML = blankItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No custom blank columns added.</div>';
 }
 
+function renderWordOptionsPanel() {
+    if (!wordColumnChecklist || !wordBlankColumnsList) return;
+
+    const questionItems = allQuestions.map(question => {
+        const questionId = String(question.id);
+        const hasState = Object.prototype.hasOwnProperty.call(wordQuestionSelectionState, questionId);
+        const checked = hasState ? !!wordQuestionSelectionState[questionId] : true;
+        if (!hasState) {
+            wordQuestionSelectionState[questionId] = true;
+        }
+
+        return `
+            <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+                <input type="checkbox" class="word-question-checkbox" data-question-id="${escapeHtml(questionId)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
+                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(capitalizeFirstLetter(question.question))}</span>
+            </label>
+        `;
+    }).join('');
+
+    wordColumnChecklist.innerHTML = `
+        <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #d7def3; border-radius:8px; background:#f8faff;">
+            <input type="checkbox" checked disabled style="margin-top:3px;">
+            <span style="font-size:13px; color:#1f2937; line-height:1.4;">Sr No</span>
+        </label>
+        ${questionItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No questions available for this event.</div>'}
+    `;
+
+    const blankItems = wordBlankColumns.map((name, index) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; margin-top:8px;">
+            <span style="font-size:13px; color:#1f2937;">Blank: ${escapeHtml(capitalizeFirstLetter(name))}</span>
+            <button type="button" class="btn btn-secondary word-remove-blank-column" data-index="${index}" style="padding:6px 10px; font-size:12px;">Remove</button>
+        </div>
+    `).join('');
+
+    wordBlankColumnsList.innerHTML = blankItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No custom blank columns added.</div>';
+}
+
 function collectPdfColumns() {
     const columns = [{ kind: 'serial', label: 'Sr No' }];
     const selectedIds = new Set();
@@ -212,6 +313,38 @@ function collectPdfColumns() {
     });
 
     pdfBlankColumns.forEach((name) => {
+        columns.push({
+            kind: 'blank',
+            label: capitalizeFirstLetter(name)
+        });
+    });
+
+    return columns;
+}
+
+function collectWordColumns() {
+    const columns = [{ kind: 'serial', label: 'Sr No' }];
+    const selectedIds = new Set();
+
+    document.querySelectorAll('.word-question-checkbox').forEach((checkbox) => {
+        const questionId = String(checkbox.dataset.questionId || '');
+        if (!questionId) return;
+        wordQuestionSelectionState[questionId] = checkbox.checked;
+        if (checkbox.checked) selectedIds.add(questionId);
+    });
+
+    allQuestions.forEach((question) => {
+        const questionId = String(question.id);
+        if (selectedIds.has(questionId)) {
+            columns.push({
+                kind: 'question',
+                label: capitalizeFirstLetter(question.question || `Question ${questionId}`),
+                questionId
+            });
+        }
+    });
+
+    wordBlankColumns.forEach((name) => {
         columns.push({
             kind: 'blank',
             label: capitalizeFirstLetter(name)
@@ -714,11 +847,13 @@ async function loadEventQuestions(eventId) {
         allQuestions = data?.questions || [];
         displayQuestions(allQuestions);
         renderPdfOptionsPanel();
+        renderWordOptionsPanel();
     } catch (error) {
         console.error('Error loading questions:', error);
         allQuestions = [];
         questionsList.innerHTML = '<div class="error">Failed to load questions</div>';
         renderPdfOptionsPanel();
+        renderWordOptionsPanel();
     }
 }
 
@@ -887,7 +1022,9 @@ async function deleteEvent(eventId, title) {
             allQuestions = [];
             allResponses = [];
             resetPdfOptions();
+            resetWordOptions();
             closePdfOptionsPanel();
+            closeWordOptionsPanel();
             responsesTable.innerHTML = '';
             responseCount.textContent = '';
             selectedEventTitle.textContent = '';
@@ -930,12 +1067,16 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     responsesSection.style.display = 'block';
     selectedEventTitle.textContent = eventTitle;
     closePdfOptionsPanel();
+    closeWordOptionsPanel();
     pdfQuestionSelectionState = {};
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = eventTitle || '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
+    wordQuestionSelectionState = {};
+    wordBlankColumns = [];
+    if (wordHeadingInput) wordHeadingInput.value = eventTitle || '';
 
     try {
         const client = await window.waitForSupabaseClient();
@@ -958,6 +1099,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         // Show questions immediately, even if response loading fails later.
         displayQuestions(allQuestions);
         renderPdfOptionsPanel();
+        renderWordOptionsPanel();
 
         // Fetch responses via admin API (responses table is not public-readable)
         try {
@@ -986,6 +1128,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         console.error('Error loading event details:', error);
         allQuestions = [];
         renderPdfOptionsPanel();
+        renderWordOptionsPanel();
         displayQuestions([]);
         responsesTable.innerHTML = '<div class="error">Failed to load responses</div>';
         if (addQuestionBtn) {
@@ -1063,6 +1206,28 @@ if (pdfBlankColumnsList && !pdfBlankColumnsList.__bound) {
         const index = Number(button.dataset.index);
         if (Number.isNaN(index)) return;
         removePdfBlankColumn(index);
+    });
+}
+
+if (wordColumnChecklist && !wordColumnChecklist.__bound) {
+    wordColumnChecklist.__bound = true;
+    wordColumnChecklist.addEventListener('change', (e) => {
+        const input = e.target;
+        if (!input || !input.classList || !input.classList.contains('word-question-checkbox')) return;
+        const questionId = String(input.dataset.questionId || '');
+        if (!questionId) return;
+        wordQuestionSelectionState[questionId] = input.checked;
+    });
+}
+
+if (wordBlankColumnsList && !wordBlankColumnsList.__bound) {
+    wordBlankColumnsList.__bound = true;
+    wordBlankColumnsList.addEventListener('click', (e) => {
+        const button = e.target.closest?.('.word-remove-blank-column');
+        if (!button) return;
+        const index = Number(button.dataset.index);
+        if (Number.isNaN(index)) return;
+        removeWordBlankColumn(index);
     });
 }
 
@@ -1193,42 +1358,72 @@ function initializeExportHandlers() {
         });
     }
 
-    // Word Export Handler
     if (wordBtn) {
-        wordBtn.addEventListener('click', async () => {
+        wordBtn.addEventListener('click', openWordOptionsPanel);
+    }
+
+    if (wordCloseBtn) {
+        wordCloseBtn.addEventListener('click', closeWordOptionsPanel);
+    }
+
+    if (wordAddBlankColumnBtn) {
+        wordAddBlankColumnBtn.addEventListener('click', addWordBlankColumnFromInput);
+    }
+
+    if (wordBlankColumnInput) {
+        wordBlankColumnInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addWordBlankColumnFromInput();
+            }
+        });
+    }
+
+    // Word Export Handler (independent settings)
+    if (wordGenerateBtn) {
+        wordGenerateBtn.addEventListener('click', async () => {
             if (!selectedEventId) {
                 alert('⚠️  Please select an event first');
                 return;
             }
 
             try {
-                wordBtn.disabled = true;
-                wordBtn.textContent = '⏳ Exporting...';
+                wordGenerateBtn.disabled = true;
+                wordGenerateBtn.textContent = '⏳ Generating...';
 
                 if (!selectedEventData || !allResponses) {
                     throw new Error('Event data or responses not loaded');
                 }
 
+                const columns = collectWordColumns();
+                const wordHeading = wordHeadingInput && wordHeadingInput.value.trim()
+                    ? wordHeadingInput.value.trim()
+                    : (selectedEventData?.title || selectedEventTitle.textContent || '');
                 await ExportUtils.exportToWord(
                     selectedEventData,
                     allQuestions,
                     allResponses,
-                    `${selectedEventData.title}_Responses`
+                    `${selectedEventData.title}_Responses`,
+                    {
+                        columns,
+                        heading: wordHeading,
+                        letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
+                    }
                 );
 
-                wordBtn.textContent = '✓ Downloaded!';
+                wordGenerateBtn.textContent = '✓ Downloaded!';
                 setTimeout(() => {
-                    wordBtn.textContent = '📝 Word';
-                    wordBtn.disabled = false;
+                    wordGenerateBtn.textContent = 'Generate Word';
+                    wordGenerateBtn.disabled = false;
                 }, 2000);
                 console.log('✅ Word export successful');
             } catch (error) {
                 console.error('Export error:', error);
                 alert('❌ Word export failed: ' + error.message);
-                wordBtn.textContent = '❌ Error';
+                wordGenerateBtn.textContent = '❌ Error';
                 setTimeout(() => {
-                    wordBtn.textContent = '📝 Word';
-                    wordBtn.disabled = false;
+                    wordGenerateBtn.textContent = 'Generate Word';
+                    wordGenerateBtn.disabled = false;
                 }, 2000);
             }
         });

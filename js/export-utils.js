@@ -445,8 +445,14 @@
         setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
 
-    async function exportToWord(eventData, questions, responses, filename) {
-        const { headers, rows, title } = buildTableData(eventData, questions, responses);
+    async function exportToWord(eventData, questions, responses, filename, options = {}) {
+        const { columns, rows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
+        const headers = columns.map((col, index) => getReadableColumnLabel(col, index));
+        const headingText = capitalizeFirstLetter(options.heading || title);
+        const letterheadCandidates = options.letterheadUrls && options.letterheadUrls.length
+            ? options.letterheadUrls
+            : ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg'];
+        const letterhead = await loadFirstAvailableImage(letterheadCandidates);
 
         const tableRows = rows.map(row => `
             <tr>
@@ -455,6 +461,9 @@
         `).join('');
 
         const headerRow = headers.map(header => `<th>${escapeHtml(String(header))}</th>`).join('');
+        const letterheadHtml = letterhead
+            ? `<div style="margin-bottom: 14px;"><img src="${letterhead.dataUrl}" alt="Letterhead" style="width:100%; max-height:140px; object-fit:contain;"></div>`
+            : '';
         const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -465,11 +474,12 @@
         h1 { font-size: 20px; margin-bottom: 16px; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; }
-        th { background: #667eea; color: #fff; text-align: left; }
+        th { background: #ffffff; color: #111827; text-align: left; font-weight: 700; }
     </style>
 </head>
 <body>
-    <h1>${escapeHtml(title)} - Responses</h1>
+    ${letterheadHtml}
+    <h1 style="text-align:center;">${escapeHtml(headingText)}</h1>
     <table>
         <thead>
             <tr>${headerRow}</tr>
