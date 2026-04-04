@@ -373,7 +373,6 @@
 
             let x = margin;
             doc.setDrawColor(148, 163, 184);
-            doc.setFillColor(...headerFill);
             doc.setTextColor(...headerTextColor);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8.5);
@@ -381,6 +380,7 @@
             columns.forEach((col, index) => {
                 const width = columnWidths[index];
                 const lines = wrapText(getReadableColumnLabel(col, index), width);
+                doc.setFillColor(...headerFill);
                 doc.rect(x, y, width, headerHeight, 'F');
                 doc.rect(x, y, width, headerHeight);
                 doc.text(lines, x + rowPaddingX, y + rowPaddingY + 3.5);
