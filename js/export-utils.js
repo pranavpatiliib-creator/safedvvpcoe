@@ -59,10 +59,6 @@
             if (!window.jspdf?.jsPDF) {
                 await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
             }
-            // AutoTable patches jsPDF; load after jsPDF.
-            if (window.jspdf?.jsPDF && typeof window.jspdf.jsPDF?.API?.autoTable !== 'function') {
-                await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.34/jspdf.plugin.autotable.min.js');
-            }
         }
 
         if (kind === 'docx') {
@@ -137,22 +133,67 @@
 
         const { headers, rows, title } = buildTableData(eventData, questions, responses);
         const doc = new jsPDF({ orientation: 'landscape' });
-        doc.setFontSize(14);
-        doc.text(`${title} - Responses`, 14, 14);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 10;
+        const availableWidth = pageWidth - (margin * 2);
+        const rowPadding = 3;
+        const lineHeight = 5;
+        const headerFill = [102, 126, 234];
 
-        if (typeof doc.autoTable === 'function') {
-            doc.autoTable({
-                head: [headers],
-                body: rows,
-                startY: 20,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [102, 126, 234] }
+        const columnCount = headers.length || 1;
+        const colWidth = availableWidth / columnCount;
+
+        const wrapText = (text, width) => doc.splitTextToSize(String(text ?? ''), width - (rowPadding * 2));
+
+        let y = margin;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${title} - Responses`, margin, y);
+        y += 10;
+
+        const drawHeader = () => {
+            doc.setFillColor(...headerFill);
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+
+            let x = margin;
+            headers.forEach(header => {
+                doc.rect(x, y, colWidth, 8, 'F');
+                const lines = wrapText(header, colWidth);
+                doc.text(lines, x + rowPadding, y + 5.5);
+                x += colWidth;
             });
-        } else {
-            // Fallback: basic text if autotable isn't present
-            doc.setFontSize(10);
-            doc.text('AutoTable not available. Please include jspdf-autotable.', 14, 26);
-        }
+            doc.setTextColor(0, 0, 0);
+            y += 8;
+        };
+
+        const drawRow = (row) => {
+            const wrappedCells = row.map(cell => wrapText(cell, colWidth));
+            const rowHeight = Math.max(...wrappedCells.map(lines => Math.max(1, lines.length))) * lineHeight + (rowPadding * 2);
+
+            if (y + rowHeight > pageHeight - margin) {
+                doc.addPage();
+                y = margin;
+                drawHeader();
+            }
+
+            let x = margin;
+            row.forEach((cell, idx) => {
+                doc.rect(x, y, colWidth, rowHeight);
+                const lines = wrappedCells[idx];
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text(lines, x + rowPadding, y + rowPadding + 4);
+                x += colWidth;
+            });
+
+            y += rowHeight;
+        };
+
+        drawHeader();
+        rows.forEach(drawRow);
 
         doc.save(`${filename || title}_Responses.pdf`);
     }
