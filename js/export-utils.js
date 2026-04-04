@@ -31,7 +31,28 @@
         // If CDNs are blocked (adblock/CSP/offline), we try to load them again here.
         // Uses the same URLs as `admin.html`.
         if (kind === 'xlsx' && !window.XLSX) {
-            await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js');
+            const candidates = [
+                'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js',
+                'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+                'https://unpkg.com/xlsx/dist/xlsx.full.min.js'
+            ];
+
+            let loaded = false;
+            for (const src of candidates) {
+                try {
+                    await loadScriptOnce(src);
+                    if (window.XLSX) {
+                        loaded = true;
+                        break;
+                    }
+                } catch (e) {
+                    // try next candidate
+                }
+            }
+
+            if (!loaded && !window.XLSX) {
+                throw new Error('Failed to load XLSX from all CDN sources');
+            }
         }
 
         if (kind === 'pdf') {

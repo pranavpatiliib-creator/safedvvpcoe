@@ -906,16 +906,6 @@ function initializeExportHandlers() {
                 return;
             }
 
-            if (typeof window.XLSX === 'undefined') {
-                alert('❌ Excel library not loaded. Please refresh the page.');
-                console.error('XLSX library not available:', {
-                    XLSX: typeof window.XLSX,
-                    location: 'window.XLSX',
-                    windowKeys: Object.keys(window).filter(k => k.toLowerCase().includes('xlsx') || k.toLowerCase().includes('excel'))
-                });
-                return;
-            }
-
             try {
                 excelBtn.disabled = true;
                 excelBtn.textContent = '⏳ Exporting...';
@@ -939,7 +929,7 @@ function initializeExportHandlers() {
                 console.log('✅ Excel export successful');
             } catch (error) {
                 console.error('Export error:', error);
-                alert('❌ Excel export failed: ' + error.message);
+                alert('❌ Excel export failed: ' + (error?.message || String(error)));
                 excelBtn.textContent = '❌ Error';
                 setTimeout(() => {
                     excelBtn.textContent = '📥 Excel';
