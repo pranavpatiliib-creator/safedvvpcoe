@@ -169,11 +169,12 @@ if (refreshBtn) {
     console.warn('⚠️  Refresh button not found');
 }
 
-// Auto-refresh events every 30 seconds
+// Auto-refresh events periodically, but only when the page is visible.
 setInterval(() => {
+    if (document.hidden) return;
     console.log('⏰ Auto-refreshing events...');
     loadEvents().catch(error => console.error('Auto-refresh error:', error));
-}, 30000);
+}, 60000);
 
 // Load events when page loads
 document.addEventListener('DOMContentLoaded', () => {
