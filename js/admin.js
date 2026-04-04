@@ -844,16 +844,14 @@ function displayResponses(responses) {
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Submitted At</th>
+                    <th>Sr No</th>
                     ${allQuestions.map(q => `<th>${escapeHtml(q.question)}</th>`).join('')}
                 </tr>
             </thead>
             <tbody>
-                ${responses.map(response => `
+                ${responses.map((response, index) => `
                     <tr>
-                        <td>${String(response.id).substring(0, 8)}</td>
-                        <td>${new Date(response.created_at).toLocaleString()}</td>
+                        <td>${index + 1}</td>
                         ${allQuestions.map(question => {
         const answer = response.answers[question.id];
         const displayValue = Array.isArray(answer) ? answer.join(', ') : (answer || '');
