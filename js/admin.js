@@ -158,7 +158,7 @@ function renderPdfOptionsPanel() {
         return `
             <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
                 <input type="checkbox" class="pdf-question-checkbox" data-question-id="${escapeHtml(questionId)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
-                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(question.question)}</span>
+                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(capitalizeFirstLetter(question.question))}</span>
             </label>
         `;
     }).join('');
@@ -173,7 +173,7 @@ function renderPdfOptionsPanel() {
 
     const blankItems = pdfBlankColumns.map((name, index) => `
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; margin-top:8px;">
-            <span style="font-size:13px; color:#1f2937;">Blank: ${escapeHtml(name)}</span>
+            <span style="font-size:13px; color:#1f2937;">Blank: ${escapeHtml(capitalizeFirstLetter(name))}</span>
             <button type="button" class="btn btn-secondary pdf-remove-blank-column" data-index="${index}" style="padding:6px 10px; font-size:12px;">Remove</button>
         </div>
     `).join('');
@@ -197,7 +197,7 @@ function collectPdfColumns() {
         if (selectedIds.has(questionId)) {
             columns.push({
                 kind: 'question',
-                label: question.question || `Question ${questionId}`,
+                label: capitalizeFirstLetter(question.question || `Question ${questionId}`),
                 questionId
             });
         }
@@ -206,11 +206,17 @@ function collectPdfColumns() {
     pdfBlankColumns.forEach((name) => {
         columns.push({
             kind: 'blank',
-            label: name
+            label: capitalizeFirstLetter(name)
         });
     });
 
     return columns;
+}
+
+function capitalizeFirstLetter(text) {
+    const value = String(text ?? '').trim();
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 // 🔹 EVENT CREATION FUNCTIONS
@@ -1125,7 +1131,7 @@ function initializeExportHandlers() {
                     `${selectedEventData.title}_Responses`,
                     {
                         columns,
-                        letterheadUrls: ['lh.jpeg', 'collegeheader.jpeg']
+                        letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );
 

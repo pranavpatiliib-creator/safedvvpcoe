@@ -85,6 +85,12 @@
         return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
+    function capitalizeFirstLetter(text) {
+        const value = String(text ?? '').trim();
+        if (!value) return '';
+        return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
     const imageDataCache = new Map();
 
     async function blobToDataUrl(blob) {
@@ -145,13 +151,13 @@
                     return {
                         kind: 'question',
                         questionId,
-                        label: col.label || question?.question || `Question ${questionId || index + 1}`
+                        label: capitalizeFirstLetter(col.label || question?.question || `Question ${questionId || index + 1}`)
                     };
                 }
 
                 return {
                     kind: 'blank',
-                    label: col.label || `Blank ${index + 1}`
+                    label: capitalizeFirstLetter(col.label || `Blank ${index + 1}`)
                 };
             }).filter(Boolean);
         }
@@ -161,7 +167,7 @@
             ...(questions || []).map(q => ({
                 kind: 'question',
                 questionId: String(q.id),
-                label: q.question || `Question ${q.id}`
+                label: capitalizeFirstLetter(q.question || `Question ${q.id}`)
             }))
         ];
     }
@@ -287,7 +293,7 @@
         if (!jsPDF) throw new Error('jsPDF library not loaded');
 
         const { columns, rows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
-        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 10;
@@ -301,7 +307,7 @@
         const columnWidths = estimatePdfColumnWidths(doc, columns, rows, availableWidth);
         const letterheadCandidates = options.letterheadUrls && options.letterheadUrls.length
             ? options.letterheadUrls
-            : ['lh.jpeg', 'collegeheader.jpeg'];
+            : ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg'];
         const letterhead = await loadFirstAvailableImage(letterheadCandidates);
         const orgLines = [
             'First Year Engineering',
