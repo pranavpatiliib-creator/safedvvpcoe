@@ -32,6 +32,7 @@ const pdfAddBlankColumnBtn = document.getElementById('pdfAddBlankColumnBtn');
 const pdfBlankColumnsList = document.getElementById('pdfBlankColumnsList');
 const pdfGenerateBtn = document.getElementById('pdfGenerateBtn');
 const pdfCloseBtn = document.getElementById('pdfCloseBtn');
+const pdfHeadingInput = document.getElementById('pdfHeadingInput');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -99,6 +100,10 @@ async function apiRequest(path, { method = 'GET', token, body } = {}) {
 function resetPdfOptions() {
     pdfQuestionSelectionState = {};
     pdfBlankColumns = [];
+    if (pdfHeadingInput) pdfHeadingInput.value = '';
+    document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
+        radio.checked = radio.value === 'portrait';
+    });
     renderPdfOptionsPanel();
 }
 
@@ -110,6 +115,9 @@ function openPdfOptionsPanel() {
 
     if (pdfOptionsPanel) {
         pdfOptionsPanel.style.display = 'block';
+        if (pdfHeadingInput && !pdfHeadingInput.value.trim()) {
+            pdfHeadingInput.value = selectedEventData?.title || selectedEventTitle?.textContent || '';
+        }
         renderPdfOptionsPanel();
         pdfOptionsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -217,6 +225,11 @@ function capitalizeFirstLetter(text) {
     const value = String(text ?? '').trim();
     if (!value) return '';
     return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getPdfOrientation() {
+    const checked = document.querySelector('input[name="pdfOrientation"]:checked');
+    return checked ? checked.value : 'portrait';
 }
 
 // 🔹 EVENT CREATION FUNCTIONS
@@ -919,6 +932,10 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     closePdfOptionsPanel();
     pdfQuestionSelectionState = {};
     pdfBlankColumns = [];
+    if (pdfHeadingInput) pdfHeadingInput.value = eventTitle || '';
+    document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
+        radio.checked = radio.value === 'portrait';
+    });
 
     try {
         const client = await window.waitForSupabaseClient();
@@ -1124,6 +1141,10 @@ function initializeExportHandlers() {
                 }
 
                 const columns = collectPdfColumns();
+                const pdfHeading = pdfHeadingInput && pdfHeadingInput.value.trim()
+                    ? pdfHeadingInput.value.trim()
+                    : (selectedEventData?.title || selectedEventTitle.textContent || '');
+                const pdfOrientation = getPdfOrientation();
                 await ExportUtils.exportToPDF(
                     selectedEventData,
                     allQuestions,
@@ -1131,6 +1152,8 @@ function initializeExportHandlers() {
                     `${selectedEventData.title}_Responses`,
                     {
                         columns,
+                        heading: pdfHeading,
+                        orientation: pdfOrientation,
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );

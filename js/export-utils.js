@@ -293,13 +293,15 @@
         if (!jsPDF) throw new Error('jsPDF library not loaded');
 
         const { columns, rows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const headingText = capitalizeFirstLetter(options.heading || title);
+        const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait';
+        const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 10;
         const availableWidth = pageWidth - (margin * 2);
-        const headerFill = [47, 67, 130];
-        const headerTextColor = [255, 255, 255];
+        const headerFill = [226, 232, 240];
+        const headerTextColor = [15, 23, 42];
         const bodyTextColor = [17, 24, 39];
         const rowPaddingX = 2.5;
         const rowPaddingY = 2.5;
@@ -320,9 +322,9 @@
             let y = margin;
 
             if (letterhead) {
-                const imageHeight = 24;
+                const imageHeight = 30;
                 doc.addImage(letterhead.dataUrl, 'JPEG', margin, y, availableWidth, imageHeight);
-                y += imageHeight + 4;
+                y += imageHeight + 8;
             } else {
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(14);
@@ -334,10 +336,10 @@
             }
 
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
+            doc.setFontSize(15);
             doc.setTextColor(17, 24, 39);
-            doc.text(title, pageWidth / 2, y + 5, { align: 'center' });
-            y += 10;
+            doc.text(headingText, pageWidth / 2, y + 6, { align: 'center' });
+            y += 14;
 
             doc.setDrawColor(148, 163, 184);
             doc.setLineWidth(0.4);
