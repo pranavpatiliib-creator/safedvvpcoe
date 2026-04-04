@@ -79,16 +79,14 @@
 
     function buildTableData(eventData, questions, responses) {
         const headers = [
-            'Response ID',
-            'Submitted At',
+            'Sr No',
             ...(questions || []).map(q => q.question)
         ];
 
-        const rows = (responses || []).map(r => {
+        const rows = (responses || []).map((r, index) => {
             const answers = r.answers || {};
             const row = [
-                String(r.id ?? ''),
-                r.created_at ? new Date(r.created_at).toLocaleString() : ''
+                index + 1
             ];
             (questions || []).forEach(q => {
                 const value = answers[q.id];
