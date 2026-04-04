@@ -255,14 +255,21 @@
 </body>
 </html>`;
 
-        const blob = new Blob([html], { type: 'application/msword' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `${filename || title}_Responses.doc`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        const blob = new Blob([html], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const opened = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename || title}_Responses.doc`;
+            a.rel = 'noopener';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
 
     window.ExportUtils = {
