@@ -536,6 +536,7 @@ function switchTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
+        tab.style.display = 'none';
     });
 
     // Remove active state from all buttons
@@ -547,6 +548,7 @@ function switchTab(tabName) {
     const tabElement = document.getElementById(tabName + 'Tab');
     if (tabElement) {
         tabElement.classList.add('active');
+        tabElement.style.display = 'block';
     }
 
     // Activate button
