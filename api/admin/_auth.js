@@ -18,6 +18,15 @@ function normalizeEnvValue(value) {
   return value.trim().replace(/^["']|["']$/g, '').replace(/;$/, '');
 }
 
+async function supabaseFetch(url, options = {}, context = 'Supabase request') {
+  try {
+    return await fetch(url, options);
+  } catch (e) {
+    const message = e?.message || String(e);
+    throw new Error(`${context} failed for ${url}: ${message}`);
+  }
+}
+
 async function requireAdmin(req, res) {
   const supabaseUrl = normalizeEnvValue(process.env.SUPABASE_URL);
   const serviceKey = normalizeEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -36,12 +45,12 @@ async function requireAdmin(req, res) {
 
   // Validate token using Supabase Auth admin endpoint (no extra deps).
   const authUrl = `${supabaseUrl.replace(/\/$/, '')}/auth/v1/user`;
-  const r = await fetch(authUrl, {
+  const r = await supabaseFetch(authUrl, {
     headers: {
       apikey: serviceKey,
       Authorization: `Bearer ${token}`
     }
-  });
+  }, 'Supabase auth validation');
 
   if (!r.ok) {
     json(res, 401, { error: 'Invalid session' });
@@ -71,4 +80,4 @@ async function readJson(req) {
   return JSON.parse(raw);
 }
 
-module.exports = { requireAdmin, readJson, json };
+module.exports = { requireAdmin, readJson, json, supabaseFetch, normalizeEnvValue };

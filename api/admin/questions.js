@@ -1,4 +1,4 @@
-const { requireAdmin, readJson, json } = require('./_auth');
+const { requireAdmin, readJson, json, supabaseFetch } = require('./_auth');
 
 module.exports = async function handler(req, res) {
   try {
@@ -16,7 +16,7 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      const r = await fetch(`${supabaseUrl}/rest/v1/questions`, {
+      const r = await supabaseFetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/questions`, {
         method: 'POST',
         headers: {
           apikey: serviceKey,
@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
           Prefer: 'return=minimal'
         },
         body: JSON.stringify(items)
-      });
+      }, 'Create questions');
 
       if (!r.ok) {
         const data = await r.json().catch(() => null);
@@ -45,10 +45,10 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      const r = await fetch(`${supabaseUrl}/rest/v1/questions?id=eq.${encodeURIComponent(id)}`, {
+      const r = await supabaseFetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/questions?id=eq.${encodeURIComponent(id)}`, {
         method: 'DELETE',
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
-      });
+      }, 'Delete question');
 
       if (!r.ok) {
         const t = await r.text().catch(() => '');
@@ -66,4 +66,3 @@ module.exports = async function handler(req, res) {
     json(res, 500, { error: e?.message || String(e) });
   }
 };
-

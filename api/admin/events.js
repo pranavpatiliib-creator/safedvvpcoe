@@ -1,4 +1,4 @@
-const { requireAdmin, readJson, json } = require('./_auth');
+const { requireAdmin, json, supabaseFetch } = require('./_auth');
 
 module.exports = async function handler(req, res) {
   try {
@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      const r = await fetch(`${supabaseUrl}/rest/v1/events?select=id,title,description,date,flyer_url`, {
+      const r = await supabaseFetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/events?select=id,title,description,date,flyer_url`, {
         method: 'POST',
         headers: {
           apikey: serviceKey,
@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
           Prefer: 'return=representation'
         },
         body: JSON.stringify(payload)
-      });
+      }, 'Create event');
 
       const data = await r.json().catch(() => null);
       if (!r.ok) {
@@ -52,10 +52,10 @@ module.exports = async function handler(req, res) {
 
       // Delete children first (no DB cascade assumed)
       const del = async (table, query) => {
-        const r = await fetch(`${supabaseUrl}/rest/v1/${table}?${query}`, {
+        const r = await supabaseFetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/${table}?${query}`, {
           method: 'DELETE',
           headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
-        });
+        }, `Delete from ${table}`);
         if (!r.ok) {
           const t = await r.text().catch(() => '');
           throw new Error(`Failed to delete from ${table}: ${t || r.status}`);
@@ -76,4 +76,3 @@ module.exports = async function handler(req, res) {
     json(res, 500, { error: e?.message || String(e) });
   }
 };
-

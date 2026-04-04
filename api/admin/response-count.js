@@ -1,4 +1,4 @@
-const { requireAdmin, json } = require('./_auth');
+const { requireAdmin, json, supabaseFetch } = require('./_auth');
 
 module.exports = async function handler(req, res) {
   try {
@@ -19,8 +19,8 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const r = await fetch(
-      `${supabaseUrl}/rest/v1/responses?event_id=eq.${encodeURIComponent(eventId)}&select=id`,
+    const r = await supabaseFetch(
+      `${supabaseUrl.replace(/\/$/, '')}/rest/v1/responses?event_id=eq.${encodeURIComponent(eventId)}&select=id`,
       {
         headers: {
           apikey: serviceKey,
@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
           Prefer: 'count=exact,head=true'
         }
       }
-    );
+    , 'Fetch response count');
 
     if (!r.ok) {
       const t = await r.text().catch(() => '');
@@ -44,4 +44,3 @@ module.exports = async function handler(req, res) {
     json(res, 500, { error: e?.message || String(e) });
   }
 };
-
