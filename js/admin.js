@@ -947,12 +947,6 @@ function initializeExportHandlers() {
                 return;
             }
 
-            if (typeof jspdf === 'undefined' && !window.jspdf) {
-                alert('❌ PDF library not loaded. Please refresh the page.');
-                console.error('jsPDF library not available');
-                return;
-            }
-
             try {
                 pdfBtn.disabled = true;
                 pdfBtn.textContent = '⏳ Exporting...';
@@ -991,12 +985,6 @@ function initializeExportHandlers() {
         wordBtn.addEventListener('click', async () => {
             if (!selectedEventId) {
                 alert('⚠️  Please select an event first');
-                return;
-            }
-
-            if (typeof window.docx === 'undefined') {
-                alert('❌ Word library not loaded. Please refresh the page.');
-                console.error('docx library not available');
                 return;
             }
 

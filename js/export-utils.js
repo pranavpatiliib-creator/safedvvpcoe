@@ -108,7 +108,28 @@
         const wb = window.XLSX.utils.book_new();
         const ws = window.XLSX.utils.aoa_to_sheet([headers, ...rows]);
         window.XLSX.utils.book_append_sheet(wb, ws, 'Responses');
-        window.XLSX.writeFile(wb, `${filename || title}_Responses.xlsx`);
+
+        const xlsxArray = window.XLSX.write(wb, {
+            bookType: 'xlsx',
+            type: 'array'
+        });
+        const blob = new Blob([xlsxArray], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = URL.createObjectURL(blob);
+        const opened = window.open(url, '_blank', 'noopener');
+
+        if (!opened) {
+            const fallbackLink = document.createElement('a');
+            fallbackLink.href = url;
+            fallbackLink.target = '_blank';
+            fallbackLink.rel = 'noopener';
+            document.body.appendChild(fallbackLink);
+            fallbackLink.click();
+            fallbackLink.remove();
+        }
+
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
 
     async function exportToPDF(eventData, questions, responses, filename) {
