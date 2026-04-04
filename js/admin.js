@@ -25,6 +25,13 @@ const responseCount = document.getElementById('responseCount');
 const exportExcelBtn = document.getElementById('exportExcelBtn');
 const exportPdfBtn = document.getElementById('exportPdfBtn');
 const exportWordBtn = document.getElementById('exportWordBtn');
+const pdfOptionsPanel = document.getElementById('pdfOptionsPanel');
+const pdfColumnChecklist = document.getElementById('pdfColumnChecklist');
+const pdfBlankColumnInput = document.getElementById('pdfBlankColumnInput');
+const pdfAddBlankColumnBtn = document.getElementById('pdfAddBlankColumnBtn');
+const pdfBlankColumnsList = document.getElementById('pdfBlankColumnsList');
+const pdfGenerateBtn = document.getElementById('pdfGenerateBtn');
+const pdfCloseBtn = document.getElementById('pdfCloseBtn');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -59,6 +66,8 @@ let allResponses = [];
 let allQuestions = [];
 let tempEventQuestions = []; // Temporary storage for questions before publishing
 let editingQuestionId = null;
+let pdfQuestionSelectionState = {};
+let pdfBlankColumns = [];
 
 async function apiRequest(path, { method = 'GET', token, body } = {}) {
     const headers = {};
@@ -85,6 +94,123 @@ async function apiRequest(path, { method = 'GET', token, body } = {}) {
     }
 
     return data;
+}
+
+function resetPdfOptions() {
+    pdfQuestionSelectionState = {};
+    pdfBlankColumns = [];
+    renderPdfOptionsPanel();
+}
+
+function openPdfOptionsPanel() {
+    if (!selectedEventId) {
+        alert('Please select an event first');
+        return;
+    }
+
+    if (pdfOptionsPanel) {
+        pdfOptionsPanel.style.display = 'block';
+        renderPdfOptionsPanel();
+        pdfOptionsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function closePdfOptionsPanel() {
+    if (pdfOptionsPanel) {
+        pdfOptionsPanel.style.display = 'none';
+    }
+}
+
+function addPdfBlankColumnFromInput() {
+    if (!pdfBlankColumnInput) return;
+
+    const name = pdfBlankColumnInput.value.trim();
+    if (!name) return;
+
+    const exists = pdfBlankColumns.some(item => item.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        alert('That blank column already exists.');
+        return;
+    }
+
+    pdfBlankColumns.push(name);
+    pdfBlankColumnInput.value = '';
+    renderPdfOptionsPanel();
+}
+
+function removePdfBlankColumn(index) {
+    if (index < 0 || index >= pdfBlankColumns.length) return;
+    pdfBlankColumns.splice(index, 1);
+    renderPdfOptionsPanel();
+}
+
+function renderPdfOptionsPanel() {
+    if (!pdfColumnChecklist || !pdfBlankColumnsList) return;
+
+    const questionItems = allQuestions.map(question => {
+        const questionId = String(question.id);
+        const hasState = Object.prototype.hasOwnProperty.call(pdfQuestionSelectionState, questionId);
+        const checked = hasState ? !!pdfQuestionSelectionState[questionId] : true;
+        if (!hasState) {
+            pdfQuestionSelectionState[questionId] = true;
+        }
+
+        return `
+            <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+                <input type="checkbox" class="pdf-question-checkbox" data-question-id="${escapeHtml(questionId)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
+                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(question.question)}</span>
+            </label>
+        `;
+    }).join('');
+
+    pdfColumnChecklist.innerHTML = `
+        <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #d7def3; border-radius:8px; background:#f8faff;">
+            <input type="checkbox" checked disabled style="margin-top:3px;">
+            <span style="font-size:13px; color:#1f2937; line-height:1.4;">Sr No</span>
+        </label>
+        ${questionItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No questions available for this event.</div>'}
+    `;
+
+    const blankItems = pdfBlankColumns.map((name, index) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; margin-top:8px;">
+            <span style="font-size:13px; color:#1f2937;">Blank: ${escapeHtml(name)}</span>
+            <button type="button" class="btn btn-secondary pdf-remove-blank-column" data-index="${index}" style="padding:6px 10px; font-size:12px;">Remove</button>
+        </div>
+    `).join('');
+
+    pdfBlankColumnsList.innerHTML = blankItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No custom blank columns added.</div>';
+}
+
+function collectPdfColumns() {
+    const columns = [{ kind: 'serial', label: 'Sr No' }];
+    const selectedIds = new Set();
+
+    document.querySelectorAll('.pdf-question-checkbox').forEach((checkbox) => {
+        const questionId = String(checkbox.dataset.questionId || '');
+        if (!questionId) return;
+        pdfQuestionSelectionState[questionId] = checkbox.checked;
+        if (checkbox.checked) selectedIds.add(questionId);
+    });
+
+    allQuestions.forEach((question) => {
+        const questionId = String(question.id);
+        if (selectedIds.has(questionId)) {
+            columns.push({
+                kind: 'question',
+                label: question.question || `Question ${questionId}`,
+                questionId
+            });
+        }
+    });
+
+    pdfBlankColumns.forEach((name) => {
+        columns.push({
+            kind: 'blank',
+            label: name
+        });
+    });
+
+    return columns;
 }
 
 // 🔹 EVENT CREATION FUNCTIONS
@@ -566,10 +692,14 @@ async function loadEventQuestions(eventId) {
         const r = await fetch(`/api/public-questions?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
         const data = await r.json().catch(() => null);
         if (!r.ok) throw new Error(data?.error || 'Failed to fetch questions');
-        displayQuestions(data?.questions || []);
+        allQuestions = data?.questions || [];
+        displayQuestions(allQuestions);
+        renderPdfOptionsPanel();
     } catch (error) {
         console.error('Error loading questions:', error);
+        allQuestions = [];
         questionsList.innerHTML = '<div class="error">Failed to load questions</div>';
+        renderPdfOptionsPanel();
     }
 }
 
@@ -737,6 +867,8 @@ async function deleteEvent(eventId, title) {
             selectedEventData = null;
             allQuestions = [];
             allResponses = [];
+            resetPdfOptions();
+            closePdfOptionsPanel();
             responsesTable.innerHTML = '';
             responseCount.textContent = '';
             selectedEventTitle.textContent = '';
@@ -778,6 +910,9 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     noSelection.style.display = 'none';
     responsesSection.style.display = 'block';
     selectedEventTitle.textContent = eventTitle;
+    closePdfOptionsPanel();
+    pdfQuestionSelectionState = {};
+    pdfBlankColumns = [];
 
     try {
         const client = await window.waitForSupabaseClient();
@@ -799,6 +934,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
 
         // Show questions immediately, even if response loading fails later.
         displayQuestions(allQuestions);
+        renderPdfOptionsPanel();
 
         // Fetch responses via admin API (responses table is not public-readable)
         try {
@@ -825,6 +961,8 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         }
     } catch (error) {
         console.error('Error loading event details:', error);
+        allQuestions = [];
+        renderPdfOptionsPanel();
         displayQuestions([]);
         responsesTable.innerHTML = '<div class="error">Failed to load responses</div>';
         if (addQuestionBtn) {
@@ -883,6 +1021,28 @@ filterInput.addEventListener('input', (e) => {
     displayResponses(filtered);
 });
 
+if (pdfColumnChecklist && !pdfColumnChecklist.__bound) {
+    pdfColumnChecklist.__bound = true;
+    pdfColumnChecklist.addEventListener('change', (e) => {
+        const input = e.target;
+        if (!input || !input.classList || !input.classList.contains('pdf-question-checkbox')) return;
+        const questionId = String(input.dataset.questionId || '');
+        if (!questionId) return;
+        pdfQuestionSelectionState[questionId] = input.checked;
+    });
+}
+
+if (pdfBlankColumnsList && !pdfBlankColumnsList.__bound) {
+    pdfBlankColumnsList.__bound = true;
+    pdfBlankColumnsList.addEventListener('click', (e) => {
+        const button = e.target.closest?.('.pdf-remove-blank-column');
+        if (!button) return;
+        const index = Number(button.dataset.index);
+        if (Number.isNaN(index)) return;
+        removePdfBlankColumn(index);
+    });
+}
+
 // 🔹 EXPORT HANDLERS INITIALIZATION
 function initializeExportHandlers() {
     console.log('🔧 Initializing export handlers...');
@@ -939,41 +1099,67 @@ function initializeExportHandlers() {
 
     // PDF Export Handler
     if (pdfBtn) {
-        pdfBtn.addEventListener('click', async () => {
+        pdfBtn.addEventListener('click', openPdfOptionsPanel);
+    }
+
+    if (pdfGenerateBtn) {
+        pdfGenerateBtn.addEventListener('click', async () => {
             if (!selectedEventId) {
                 alert('⚠️  Please select an event first');
                 return;
             }
 
             try {
-                pdfBtn.disabled = true;
-                pdfBtn.textContent = '⏳ Exporting...';
+                pdfGenerateBtn.disabled = true;
+                pdfGenerateBtn.textContent = '⏳ Generating...';
 
                 if (!selectedEventData || !allResponses) {
                     throw new Error('Event data or responses not loaded');
                 }
 
+                const columns = collectPdfColumns();
                 await ExportUtils.exportToPDF(
                     selectedEventData,
                     allQuestions,
                     allResponses,
-                    `${selectedEventData.title}_Responses`
+                    `${selectedEventData.title}_Responses`,
+                    {
+                        columns,
+                        letterheadUrls: ['lh.jpeg', 'collegeheader.jpeg']
+                    }
                 );
 
-                pdfBtn.textContent = '✓ Downloaded!';
+                pdfGenerateBtn.textContent = '✓ Downloaded!';
                 setTimeout(() => {
-                    pdfBtn.textContent = '📄 PDF';
-                    pdfBtn.disabled = false;
+                    pdfGenerateBtn.textContent = 'Generate PDF';
+                    pdfGenerateBtn.disabled = false;
                 }, 2000);
                 console.log('✅ PDF export successful');
             } catch (error) {
                 console.error('Export error:', error);
                 alert('❌ PDF export failed: ' + error.message);
-                pdfBtn.textContent = '❌ Error';
+                pdfGenerateBtn.textContent = '❌ Error';
                 setTimeout(() => {
-                    pdfBtn.textContent = '📄 PDF';
-                    pdfBtn.disabled = false;
+                    pdfGenerateBtn.textContent = 'Generate PDF';
+                    pdfGenerateBtn.disabled = false;
                 }, 2000);
+            }
+        });
+    }
+
+    if (pdfCloseBtn) {
+        pdfCloseBtn.addEventListener('click', closePdfOptionsPanel);
+    }
+
+    if (pdfAddBlankColumnBtn) {
+        pdfAddBlankColumnBtn.addEventListener('click', addPdfBlankColumnFromInput);
+    }
+
+    if (pdfBlankColumnInput) {
+        pdfBlankColumnInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addPdfBlankColumnFromInput();
             }
         });
     }

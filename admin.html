@@ -231,6 +231,28 @@
                             </div>
                         </div>
 
+                        <div id="pdfOptionsPanel" style="display:none; margin-top:12px; padding:14px; border:1px solid #d9e2f2; border-radius:10px; background:#fbfcff;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                                <div>
+                                    <strong>PDF Column Selection</strong>
+                                    <div style="font-size:12px; color:#667085;">Choose the columns to include in the PDF and add blank columns if needed.</div>
+                                </div>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <button id="pdfGenerateBtn" class="btn btn-primary" type="button">Generate PDF</button>
+                                    <button id="pdfCloseBtn" class="btn btn-secondary" type="button">Close</button>
+                                </div>
+                            </div>
+
+                            <div id="pdfColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
+
+                            <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                                <input type="text" id="pdfBlankColumnInput" placeholder="Add custom blank column" class="search-box" style="flex:1; min-width:220px;">
+                                <button id="pdfAddBlankColumnBtn" class="btn btn-secondary" type="button">Add Blank Column</button>
+                            </div>
+
+                            <div id="pdfBlankColumnsList" style="margin-top:10px;"></div>
+                        </div>
+
                         <div class="filters">
                             <input type="text" id="filterInput" placeholder="Search responses..." class="search-box">
                             <span id="responseCount" class="response-count">0 responses</span>
