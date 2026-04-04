@@ -210,18 +210,22 @@ registrationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     try {
-        const client = await window.waitForSupabaseClient();
         // Collect data
         const answers = collectFormData();
 
-        // Submit to Supabase
-        const { error } = await client
-            .from('responses')
-            .insert({
+        const r = await fetch('/api/public-submit-response', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
                 event_id: currentEvent.id,
                 answers
-            });
-        if (error) throw error;
+            })
+        });
+
+        const data = await r.json().catch(() => null);
+        if (!r.ok) {
+            throw new Error(data?.error || data?.message || 'Failed to submit response');
+        }
 
         // Hide form and show success message
         registrationForm.style.display = 'none';
