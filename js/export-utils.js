@@ -73,6 +73,18 @@
         return window.docx || window.Docx || null;
     }
 
+    function escapeHtml(text) {
+        if (text == null) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
     function buildTableData(eventData, questions, responses) {
         const headers = [
             'Sr No',
@@ -208,53 +220,45 @@
     }
 
     async function exportToWord(eventData, questions, responses, filename) {
-        await ensureLibs('docx');
-        const docxLib = getDocx();
-        if (!docxLib) throw new Error('docx library not loaded');
-
-        const {
-            Document,
-            Packer,
-            Paragraph,
-            TextRun,
-            Table,
-            TableRow,
-            TableCell,
-            WidthType
-        } = docxLib;
-
         const { headers, rows, title } = buildTableData(eventData, questions, responses);
 
-        const tableRows = [
-            new TableRow({
-                children: headers.map(h => new TableCell({
-                    children: [new Paragraph({ children: [new TextRun({ text: String(h), bold: true })] })]
-                }))
-            }),
-            ...rows.map(r => new TableRow({
-                children: r.map(v => new TableCell({
-                    children: [new Paragraph(String(v ?? ''))]
-                }))
-            }))
-        ];
+        const tableRows = rows.map(row => `
+            <tr>
+                ${row.map(cell => `<td>${escapeHtml(String(cell ?? ''))}</td>`).join('')}
+            </tr>
+        `).join('');
 
-        const doc = new Document({
-            sections: [{
-                children: [
-                    new Paragraph({ children: [new TextRun({ text: `${title} - Responses`, bold: true, size: 32 })] }),
-                    new Paragraph(''),
-                    new Table({
-                        width: { size: 100, type: WidthType.PERCENTAGE },
-                        rows: tableRows
-                    })
-                ]
-            }]
-        });
+        const headerRow = headers.map(header => `<th>${escapeHtml(String(header))}</th>`).join('');
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${escapeHtml(title)} - Responses</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #111; }
+        h1 { font-size: 20px; margin-bottom: 16px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; }
+        th { background: #667eea; color: #fff; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>${escapeHtml(title)} - Responses</h1>
+    <table>
+        <thead>
+            <tr>${headerRow}</tr>
+        </thead>
+        <tbody>
+            ${tableRows || '<tr><td>No responses</td></tr>'}
+        </tbody>
+    </table>
+</body>
+</html>`;
 
-        const blob = await Packer.toBlob(doc);
+        const blob = new Blob([html], { type: 'application/msword' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `${filename || title}_Responses.docx`;
+        a.download = `${filename || title}_Responses.doc`;
         document.body.appendChild(a);
         a.click();
         a.remove();
