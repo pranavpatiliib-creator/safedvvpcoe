@@ -15,7 +15,7 @@ function getBearerToken(req) {
 
 function normalizeEnvValue(value) {
   if (typeof value !== 'string') return '';
-  return value.trim().replace(/^["']|["']$/g, '').replace(/;$/, '');
+  return value.trim().replace(/["';]/g, '');
 }
 
 async function supabaseFetch(url, options = {}, context = 'Supabase request') {

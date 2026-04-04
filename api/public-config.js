@@ -2,7 +2,7 @@ module.exports = async function handler(req, res) {
   try {
     const normalizeEnvValue = (value) => {
       if (typeof value !== 'string') return '';
-      return value.trim().replace(/^["']|["']$/g, '').replace(/;$/, '');
+      return value.trim().replace(/["';]/g, '');
     };
 
     const supabaseUrl = normalizeEnvValue(process.env.SUPABASE_URL) || 'https://vjkmrnepxbuofpdlxomf.supabase.co';
