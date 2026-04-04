@@ -454,14 +454,10 @@ function switchTab(tabName) {
 // 🔹 LOAD AND DISPLAY QUESTIONS
 async function loadEventQuestions(eventId) {
     try {
-        const client = await window.waitForSupabaseClient();
-        const { data: questions, error } = await client
-            .from('questions')
-            .select('*')
-            .eq('event_id', eventId)
-            .order('id', { ascending: true });
-        if (error) throw error;
-        displayQuestions(questions);
+        const r = await fetch(`/api/public-questions?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
+        const data = await r.json().catch(() => null);
+        if (!r.ok) throw new Error(data?.error || 'Failed to fetch questions');
+        displayQuestions(data?.questions || []);
     } catch (error) {
         console.error('Error loading questions:', error);
         questionsList.innerHTML = '<div class="error">Failed to load questions</div>';
@@ -570,7 +566,7 @@ async function loadEvents() {
 // Display events in sidebar
 function displayEventsList() {
     eventsList.innerHTML = allEvents.map(event => `
-        <div class="event-item" onclick="selectEvent('${escapeJsString(String(event.id))}', '${escapeJsString(event.title)}')">
+        <div class="event-item" onclick="selectEvent('${escapeJsString(String(event.id))}', '${escapeJsString(event.title)}', this)">
             <div class="event-item-title">${escapeHtml(event.title)}</div>
             <div class="event-item-count">Responses: <span id="count-${event.id}">-</span></div>
         </div>
@@ -658,18 +654,21 @@ async function loadResponseCount(eventId) {
 }
 
 // Select event and load responses
-async function selectEvent(eventId, eventTitle) {
+async function selectEvent(eventId, eventTitle, itemEl) {
     selectedEventId = eventId;
     noSelection.style.display = 'none';
     responsesSection.style.display = 'block';
     selectedEventTitle.textContent = eventTitle;
 
     try {
+        const client = await window.waitForSupabaseClient();
         // Update active state
         document.querySelectorAll('.event-item').forEach(item => {
             item.classList.remove('active');
         });
-        event.target.closest('.event-item').classList.add('active');
+        if (itemEl && itemEl.classList) {
+            itemEl.classList.add('active');
+        }
 
         selectedEventData = allEvents.find(evt => String(evt.id) === String(eventId)) || null;
         if (!selectedEventData) throw new Error('Event not found');
