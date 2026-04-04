@@ -420,20 +420,32 @@ async function uploadFlyerIfAny() {
     if (!file) return null;
 
     const client = await window.waitForSupabaseClient();
-    if (!client.storage) throw new Error('Supabase Storage not available');
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Not authenticated');
 
-    const ext = (file.name.split('.').pop() || 'png').toLowerCase();
-    const path = `${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
+    const dataBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            const i = result.indexOf(',');
+            resolve(i >= 0 ? result.slice(i + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('Failed to read flyer file'));
+        reader.readAsDataURL(file);
+    });
 
-    const { error: uploadError } = await client
-        .storage
-        .from('flyers')
-        .upload(path, file, { upsert: true, contentType: file.type });
+    const out = await apiRequest('/api/admin/upload-flyer', {
+        method: 'POST',
+        token,
+        body: {
+            filename: file.name,
+            contentType: file.type || 'application/octet-stream',
+            dataBase64
+        }
+    });
 
-    if (uploadError) throw uploadError;
-
-    const { data } = client.storage.from('flyers').getPublicUrl(path);
-    return data?.publicUrl || null;
+    return out?.url || null;
 }
 
 // Display temporary questions in the modal
