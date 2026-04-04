@@ -18,6 +18,24 @@ function normalizeEnvValue(value) {
   return value.trim().replace(/["';]/g, '');
 }
 
+function decodeJwtPayload(jwt) {
+  try {
+    const parts = String(jwt || '').split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const jsonText = Buffer.from(padded, 'base64').toString('utf8');
+    return JSON.parse(jsonText);
+  } catch {
+    return null;
+  }
+}
+
+function isServiceRoleKey(key) {
+  const payload = decodeJwtPayload(key);
+  return payload?.role === 'service_role';
+}
+
 async function supabaseFetch(url, options = {}, context = 'Supabase request') {
   try {
     return await fetch(url, options);
@@ -34,6 +52,11 @@ async function requireAdmin(req, res) {
 
   if (!supabaseUrl || !serviceKey) {
     json(res, 500, { error: 'Server misconfigured: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' });
+    return null;
+  }
+
+  if (!isServiceRoleKey(serviceKey)) {
+    json(res, 500, { error: 'Server misconfigured: SUPABASE_SERVICE_ROLE_KEY is not a service_role key' });
     return null;
   }
 
