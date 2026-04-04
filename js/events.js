@@ -90,7 +90,7 @@ function displayEvents(events) {
             <div class="event-card-header">
                 ${event.flyer_url ? `<img class="event-flyer" src="${escapeHtml(event.flyer_url)}" alt="Event flyer">` : ''}
                 <span class="event-card-date">${formatDate(event.date)}</span>
-``````````````````````  XXXX                ${event.flyer_url ? `<a class="flyer-registration-link" href="event.html?event_id=${event.id}">Registration Link</a>` : ''}
+                ${event.flyer_url ? `<a class="flyer-registration-link" href="event.html?event_id=${encodeURIComponent(String(event.id))}">Registration Link</a>` : ''}
             </div>
             <div class="event-card-body">
                 <h3>${escapeHtml(event.title)}</h3>
@@ -100,7 +100,7 @@ function displayEvents(events) {
         year: 'numeric'
     })}</span>
                 <p>${escapeHtml(event.description || 'No description available')}</p>
-                <button class="btn btn-primary" onclick="registerEvent(${event.id})">
+                <button class="btn btn-primary" onclick="registerEvent('${escapeJsString(String(event.id))}')">
                     Register Now
                 </button>
             </div>
@@ -130,9 +130,18 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+function escapeJsString(text) {
+    if (text == null) return '';
+    return String(text)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 // Redirect to registration page
 function registerEvent(eventId) {
-    window.location.href = `event.html?event_id=${eventId}`;
+    window.location.href = `event.html?event_id=${encodeURIComponent(eventId)}`;
 }
 
 // Search functionality

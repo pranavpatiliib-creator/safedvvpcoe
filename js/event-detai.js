@@ -18,8 +18,7 @@ function getEventIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get('event_id');
     if (!raw) return null;
-    const num = Number(raw);
-    return Number.isFinite(num) ? num : null;
+    return raw;
 }
 
 // Load event details and questions

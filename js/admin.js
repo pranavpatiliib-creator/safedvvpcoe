@@ -485,7 +485,7 @@ function displayQuestions(questions) {
                 </p>
             </div>
             <div class="question-actions">
-                <button class="btn-delete" onclick="deleteQuestion(${q.id})">Delete</button>
+                <button class="btn-delete" onclick="deleteQuestion('${escapeJsString(String(q.id))}')">Delete</button>
             </div>
         </div>
     `).join('');
@@ -570,7 +570,7 @@ async function loadEvents() {
 // Display events in sidebar
 function displayEventsList() {
     eventsList.innerHTML = allEvents.map(event => `
-        <div class="event-item" onclick="selectEvent(${event.id}, '${escapeHtml(event.title)}')">
+        <div class="event-item" onclick="selectEvent('${escapeJsString(String(event.id))}', '${escapeJsString(event.title)}')">
             <div class="event-item-title">${escapeHtml(event.title)}</div>
             <div class="event-item-count">Responses: <span id="count-${event.id}">-</span></div>
         </div>
@@ -933,6 +933,15 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function escapeJsString(text) {
+    if (text == null) return '';
+    return String(text)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
 }
 
 // Global functions for HTML onclick handlers
