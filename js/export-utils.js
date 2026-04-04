@@ -144,6 +144,15 @@
 
     function normalizePdfColumns(columns, questions) {
         const questionMap = new Map((questions || []).map(q => [String(q.id), q]));
+        const resolveColumnLabel = (col, question, fallback) => {
+            const fromSelection = capitalizeFirstLetter(col?.label || '');
+            if (fromSelection) return fromSelection;
+
+            const fromQuestion = capitalizeFirstLetter(question?.question || '');
+            if (fromQuestion) return fromQuestion;
+
+            return capitalizeFirstLetter(fallback || '');
+        };
 
         if (Array.isArray(columns) && columns.length > 0) {
             return columns.map((col, index) => {
@@ -151,7 +160,7 @@
 
                 const kind = col.kind || (col.questionId ? 'question' : index === 0 ? 'serial' : 'blank');
                 if (kind === 'serial') {
-                    return { kind: 'serial', label: col.label || 'Sr No' };
+                    return { kind: 'serial', label: resolveColumnLabel(col, null, 'Sr No') };
                 }
 
                 if (kind === 'question') {
@@ -160,13 +169,13 @@
                     return {
                         kind: 'question',
                         questionId,
-                        label: capitalizeFirstLetter(col.label || question?.question || `Question ${questionId || index + 1}`)
+                        label: resolveColumnLabel(col, question, `Question ${questionId || index + 1}`)
                     };
                 }
 
                 return {
                     kind: 'blank',
-                    label: capitalizeFirstLetter(col.label || `Blank ${index + 1}`)
+                    label: resolveColumnLabel(col, null, `Blank ${index + 1}`)
                 };
             }).filter(Boolean);
         }
@@ -176,7 +185,7 @@
             ...(questions || []).map(q => ({
                 kind: 'question',
                 questionId: String(q.id),
-                label: capitalizeFirstLetter(q.question || `Question ${q.id}`)
+                label: resolveColumnLabel(null, q, `Question ${q.id}`)
             }))
         ];
     }
