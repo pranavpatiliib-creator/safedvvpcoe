@@ -90,7 +90,9 @@ function displayEvents(events) {
             <div class="event-card-header">
                 ${event.flyer_url ? `<img class="event-flyer" src="${escapeHtml(event.flyer_url)}" alt="Event flyer">` : ''}
                 <span class="event-card-date">${formatDate(event.date)}</span>
-                ${event.flyer_url ? `<a class="flyer-registration-link" href="event.html?event_id=${encodeURIComponent(String(event.id))}">Registration Link</a>` : ''}
+                <button class="event-overlay-register" onclick="registerEvent('${escapeJsString(String(event.id))}')">
+                    Register Now
+                </button>
             </div>
             <div class="event-card-body">
                 <h3>${escapeHtml(event.title)}</h3>
@@ -100,9 +102,6 @@ function displayEvents(events) {
         year: 'numeric'
     })}</span>
                 <p>${escapeHtml(event.description || 'No description available')}</p>
-                <button class="btn btn-primary" onclick="registerEvent('${escapeJsString(String(event.id))}')">
-                    Register Now
-                </button>
             </div>
         </div>
     `).join('');
