@@ -42,16 +42,14 @@ async function refreshEvents() {
 // Load and display all events
 async function loadEvents() {
     try {
-        const client = await window.waitForSupabaseClient();
         eventsContainer.innerHTML = '<div class="loading">Loading events...</div>';
 
-        const { data: events, error } = await client
-            .from('events')
-            .select('*')
-            .order('date', { ascending: false });
-        if (error) throw error;
+        const r = await fetch('/api/public-events', { cache: 'no-store' });
+        const data = await r.json().catch(() => null);
+        if (!r.ok) throw new Error(data?.error || 'Failed to fetch events');
 
-        allEvents = events || [];
+        const events = data?.events || [];
+        allEvents = events;
 
         if (events.length === 0) {
             eventsContainer.innerHTML = `
@@ -63,7 +61,7 @@ async function loadEvents() {
             return;
         }
 
-        displayEvents(events);
+        displayEvents(allEvents);
     } catch (error) {
         console.error('Error loading events:', error);
         alert(`Failed to load events: ${error?.message || error}`);

@@ -549,15 +549,13 @@ if (exportWordBtn) {
 
 async function loadEvents() {
     try {
-        const client = await window.waitForSupabaseClient();
-        const { data: events, error } = await client
-            .from('events')
-            .select('*')
-            .order('date', { ascending: false });
-        if (error) throw error;
-        allEvents = events;
+        const r = await fetch('/api/public-events', { cache: 'no-store' });
+        const data = await r.json().catch(() => null);
+        if (!r.ok) throw new Error(data?.error || 'Failed to fetch events');
 
-        if (events.length === 0) {
+        allEvents = data?.events || [];
+
+        if (allEvents.length === 0) {
             eventsList.innerHTML = '<p class="loading">No events available</p>';
             return;
         }
@@ -667,31 +665,19 @@ async function selectEvent(eventId, eventTitle) {
     selectedEventTitle.textContent = eventTitle;
 
     try {
-        const client = await window.waitForSupabaseClient();
         // Update active state
         document.querySelectorAll('.event-item').forEach(item => {
             item.classList.remove('active');
         });
         event.target.closest('.event-item').classList.add('active');
 
-        // Fetch event details
-        const { data: events, error: eventError } = await client
-            .from('events')
-            .select('*')
-            .eq('id', eventId)
-            .limit(1);
-        if (eventError) throw eventError;
-        selectedEventData = events && events[0] ? events[0] : null;
+        selectedEventData = allEvents.find(evt => String(evt.id) === String(eventId)) || null;
         if (!selectedEventData) throw new Error('Event not found');
 
-        // Fetch questions
-        const { data: questions, error: questionsError } = await client
-            .from('questions')
-            .select('*')
-            .eq('event_id', eventId)
-            .order('id', { ascending: true });
-        if (questionsError) throw questionsError;
-        allQuestions = questions || [];
+        const questionRes = await fetch(`/api/public-questions?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
+        const questionData = await questionRes.json().catch(() => null);
+        if (!questionRes.ok) throw new Error(questionData?.error || 'Failed to fetch questions');
+        allQuestions = questionData?.questions || [];
 
         // Fetch responses via admin API (responses table is not public-readable)
         const { data: sessionData } = await client.auth.getSession();

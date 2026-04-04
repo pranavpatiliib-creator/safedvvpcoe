@@ -32,25 +32,19 @@ async function loadEventDetails() {
     }
 
     try {
-        if (!window.waitForSupabaseClient) {
-            throw new Error('waitForSupabaseClient is missing. Ensure `js/supabase-client.js` loaded.');
-        }
-        const client = await window.waitForSupabaseClient();
         console.log('Loading event details for event_id:', eventId);
-        // Fetch event details
-        const { data: events, error: eventError } = await client
-            .from('events')
-            .select('*')
-            .eq('id', eventId)
-            .limit(1);
-        if (eventError) throw eventError;
+        const eventRes = await fetch('/api/public-events', { cache: 'no-store' });
+        const eventData = await eventRes.json().catch(() => null);
+        if (!eventRes.ok) throw new Error(eventData?.error || 'Failed to fetch events');
 
-        if (!events || events.length === 0) {
+        const events = eventData?.events || [];
+        const matched = events.find(item => String(item.id) === String(eventId));
+        if (!matched) {
             showError('Event not found');
             return;
         }
 
-        currentEvent = events[0];
+        currentEvent = matched;
 
         // Display event details
         eventDetailsDiv.innerHTML = `
@@ -72,25 +66,11 @@ async function loadEventDetails() {
         `;
 
         // Fetch questions
-        let { data: questions, error: questionsError } = await client
-            .from('questions')
-            .select('*')
-            .eq('event_id', eventId)
-            .order('id', { ascending: true });
-        if (questionsError) throw questionsError;
+        const questionRes = await fetch(`/api/public-questions?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
+        const questionData = await questionRes.json().catch(() => null);
+        if (!questionRes.ok) throw new Error(questionData?.error || 'Failed to fetch questions');
 
-        // If the column is text/uuid-like in your DB, try again with string id.
-        if ((!questions || questions.length === 0) && String(eventId) !== eventId) {
-            const retry = await client
-                .from('questions')
-                .select('*')
-                .eq('event_id', String(eventId))
-                .order('id', { ascending: true });
-            if (retry.error) throw retry.error;
-            questions = retry.data;
-        }
-
-        currentQuestions = questions || [];
+        currentQuestions = questionData?.questions || [];
         console.log('Loaded questions:', currentQuestions.length);
 
         // Generate form
