@@ -195,7 +195,16 @@
         drawHeader();
         rows.forEach(drawRow);
 
-        doc.save(`${filename || title}_Responses.pdf`);
+        const blob = doc.output('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename || title}_Responses.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
 
     async function exportToWord(eventData, questions, responses, filename) {
