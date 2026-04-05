@@ -543,9 +543,18 @@ function closeQuestionFormModal() {
 function updateQuickQuestionTypeDisplay() {
     const type = document.getElementById('quickQuestionType').value;
     const optionsGroup = document.getElementById('quickOptionsGroup');
+    const optionsLabel = document.querySelector('label[for="quickQuestionOptions"]');
+    const optionsInput = document.getElementById('quickQuestionOptions');
 
-    if (['select', 'radio', 'checkbox'].includes(type)) {
+    if (['select', 'radio', 'checkbox', 'group_members'].includes(type)) {
         optionsGroup.style.display = 'block';
+        if (type === 'group_members') {
+            if (optionsLabel) optionsLabel.textContent = 'Maximum Members (1-10)';
+            if (optionsInput) optionsInput.placeholder = 'Enter max group members, for example 4';
+        } else {
+            if (optionsLabel) optionsLabel.textContent = 'Options (comma-separated)';
+            if (optionsInput) optionsInput.placeholder = 'Option 1, Option 2, Option 3';
+        }
     } else {
         optionsGroup.style.display = 'none';
     }
@@ -702,11 +711,37 @@ function closeAddQuestionModal() {
 
 function updateQuestionTypeDisplay() {
     const type = document.getElementById('questionType').value;
-    if (['select', 'radio', 'checkbox'].includes(type)) {
+    const optionsLabel = document.querySelector('label[for="questionOptions"]');
+    const optionsInput = document.getElementById('questionOptions');
+
+    if (['select', 'radio', 'checkbox', 'group_members'].includes(type)) {
         optionsGroup.style.display = 'block';
+        if (type === 'group_members') {
+            if (optionsLabel) optionsLabel.textContent = 'Maximum Members (1-10)';
+            if (optionsInput) optionsInput.placeholder = 'Enter max group members, for example 4';
+        } else {
+            if (optionsLabel) optionsLabel.textContent = 'Options (comma-separated)';
+            if (optionsInput) optionsInput.placeholder = 'Option 1, Option 2, Option 3';
+        }
     } else {
         optionsGroup.style.display = 'none';
     }
+}
+
+function parseQuestionOptions(questionType, rawOptions) {
+    const value = String(rawOptions || '').trim();
+
+    if (!value) return null;
+
+    if (questionType === 'group_members') {
+        const maxMembers = Number.parseInt(value, 10);
+        if (!Number.isInteger(maxMembers) || maxMembers < 1 || maxMembers > 10) {
+            throw new Error('For Group Members, enter a maximum member limit between 1 and 10');
+        }
+        return [String(maxMembers)];
+    }
+
+    return value.split(',').map(opt => opt.trim()).filter(opt => opt);
 }
 
 // Add question modal close on background click
@@ -731,7 +766,7 @@ addQuestionForm.addEventListener('submit', async (e) => {
     }
 
     // Validate options for select/radio/checkbox
-    if (['select', 'radio', 'checkbox'].includes(questionType)) {
+    if (['select', 'radio', 'checkbox', 'group_members'].includes(questionType)) {
         if (!questionOptions) {
             alert('Please add options for this question type');
             return;
@@ -748,10 +783,7 @@ addQuestionForm.addEventListener('submit', async (e) => {
         addQuestionBtn.textContent = '⏳';
 
         // Parse options
-        let optionsArray = null;
-        if (questionOptions) {
-            optionsArray = questionOptions.split(',').map(opt => opt.trim()).filter(opt => opt);
-        }
+        const optionsArray = parseQuestionOptions(questionType, questionOptions);
 
         // Create question via admin API
         await apiRequest('/api/admin/questions', {
@@ -799,7 +831,7 @@ addQuestionForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (['select', 'radio', 'checkbox'].includes(questionType) && !questionOptions) {
+    if (['select', 'radio', 'checkbox', 'group_members'].includes(questionType) && !questionOptions) {
         alert('Please add options for this question type');
         return;
     }
@@ -813,9 +845,7 @@ addQuestionForm.addEventListener('submit', async (e) => {
         addQuestionBtn.disabled = true;
         addQuestionBtn.textContent = 'â³';
 
-        const optionsArray = questionOptions
-            ? questionOptions.split(',').map(opt => opt.trim()).filter(Boolean)
-            : null;
+        const optionsArray = parseQuestionOptions(questionType, questionOptions);
 
         if (editingQuestionId) {
             await apiRequest(`/api/admin/questions?id=${encodeURIComponent(editingQuestionId)}`, {
@@ -1813,7 +1843,7 @@ function initializeQuickQuestionForm() {
             }
 
             // Validate options for select/radio/checkbox
-            if (['select', 'radio', 'checkbox'].includes(questionType)) {
+            if (['select', 'radio', 'checkbox', 'group_members'].includes(questionType)) {
                 if (!questionOptions) {
                     alert('❌ Please add options for this question type');
                     return;

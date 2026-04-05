@@ -155,12 +155,60 @@ function createFormField(question, index) {
             });
             fieldHTML += '</div>';
             break;
+        case 'group_members':
+            const maxMembers = Math.min(
+                10,
+                Math.max(1, Number.parseInt(Array.isArray(question.options) ? question.options[0] : question.options, 10) || 2)
+            );
+            fieldHTML += `
+                <div class="group-members-box">
+                    <select id="q${index}" name="q${index}" ${isRequired ? 'required' : ''} onchange="toggleGroupMemberFields(${index})">
+                        <option value="">Select group size</option>
+                        ${Array.from({ length: maxMembers }, (_, optionIndex) => `
+                            <option value="${optionIndex + 1}">${optionIndex + 1} Member${optionIndex === 0 ? '' : 's'}</option>
+                        `).join('')}
+                    </select>
+                    <div id="groupMembersFields${index}" class="group-members-fields" style="display:none;">
+                        ${Array.from({ length: maxMembers }, (_, memberIndex) => `
+                            <input
+                                type="text"
+                                id="q${index}_member${memberIndex + 1}"
+                                name="q${index}_member${memberIndex + 1}"
+                                placeholder="Member ${memberIndex + 1} Name"
+                                style="${memberIndex === 0 ? '' : 'display:none;'}"
+                            >
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            break;
         default:
             fieldHTML += `<input type="text" id="q${index}" name="q${index}" ${isRequired ? 'required' : ''}>`;
     }
 
     div.innerHTML = fieldHTML;
     return div;
+}
+
+function toggleGroupMemberFields(index) {
+    const countSelect = document.getElementById(`q${index}`);
+    const fieldsWrap = document.getElementById(`groupMembersFields${index}`);
+    if (!countSelect || !fieldsWrap) return;
+
+    const count = Number.parseInt(countSelect.value, 10) || 0;
+    fieldsWrap.style.display = count ? 'grid' : 'none';
+
+    let memberIndex = 1;
+    while (true) {
+        const input = document.getElementById(`q${index}_member${memberIndex}`);
+        if (!input) break;
+
+        const isVisible = memberIndex <= count;
+        input.required = isVisible;
+        input.style.display = isVisible ? 'block' : 'none';
+        if (!isVisible) input.value = '';
+        memberIndex += 1;
+    }
 }
 
 function escapeHtml(text) {
@@ -185,6 +233,20 @@ function collectFormData() {
         if (questionType === 'checkbox') {
             const checkboxes = document.querySelectorAll(`input[name="q${index}"]:checked`);
             answers[questionId] = Array.from(checkboxes).map((checkbox) => checkbox.value);
+        } else if (questionType === 'group_members') {
+            const groupSize = document.querySelector(`[name="q${index}"]`)?.value || '';
+            const maxMembers = Number.parseInt(groupSize, 10) || 0;
+            const memberNames = [];
+
+            for (let memberIndex = 1; memberIndex <= maxMembers; memberIndex += 1) {
+                const value = document.getElementById(`q${index}_member${memberIndex}`)?.value.trim() || '';
+                if (value) memberNames.push(value);
+            }
+
+            answers[questionId] = {
+                group_size: groupSize,
+                member_names: memberNames
+            };
         } else {
             const element = document.querySelector(`[name="q${index}"]`);
             answers[questionId] = element ? element.value : '';

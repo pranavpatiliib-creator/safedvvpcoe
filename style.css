@@ -794,6 +794,20 @@ section {
     min-height: 100px;
 }
 
+.group-members-box {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.group-members-fields {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
 .checkbox-group,
 .radio-group {
     margin: 12px 0;
