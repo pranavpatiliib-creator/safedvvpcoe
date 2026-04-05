@@ -51,6 +51,17 @@ const eventDescriptionInput = document.getElementById('eventDescription');
 const eventDateInput = document.getElementById('eventDate');
 const eventFlyerInput = document.getElementById('eventFlyer');
 const eventFlyerPreview = document.getElementById('eventFlyerPreview');
+const associationMembersAdminList = document.getElementById('associationMembersAdminList');
+const addAssociationMemberBtn = document.getElementById('addAssociationMemberBtn');
+const associationMemberModal = document.getElementById('associationMemberModal');
+const associationMemberModalTitle = document.getElementById('associationMemberModalTitle');
+const associationMemberForm = document.getElementById('associationMemberForm');
+const associationMemberIdInput = document.getElementById('associationMemberId');
+const associationMemberNameInput = document.getElementById('associationMemberName');
+const associationMemberRoleInput = document.getElementById('associationMemberRole');
+const associationMemberOrderInput = document.getElementById('associationMemberOrder');
+const associationMemberImageInput = document.getElementById('associationMemberImage');
+const associationMemberImagePreview = document.getElementById('associationMemberImagePreview');
 
 // Question modal elements
 const addQuestionBtn = document.getElementById('addQuestionBtn');
@@ -75,6 +86,8 @@ let allResponses = [];
 let allQuestions = [];
 let tempEventQuestions = []; // Temporary storage for questions before publishing
 let editingQuestionId = null;
+let associationMembers = [];
+let editingAssociationMemberImageUrl = '';
 let pdfQuestionSelectionState = {};
 let pdfBlankColumns = [];
 let wordQuestionSelectionState = {};
@@ -412,6 +425,28 @@ if (eventFlyerInput && eventFlyerPreview) {
         }
         eventFlyerPreview.src = URL.createObjectURL(file);
         eventFlyerPreview.style.display = 'block';
+    });
+}
+
+if (associationMemberImageInput && associationMemberImagePreview) {
+    associationMemberImageInput.addEventListener('change', () => {
+        const file = associationMemberImageInput.files && associationMemberImageInput.files[0]
+            ? associationMemberImageInput.files[0]
+            : null;
+
+        if (!file) {
+            if (editingAssociationMemberImageUrl) {
+                associationMemberImagePreview.src = editingAssociationMemberImageUrl;
+                associationMemberImagePreview.style.display = 'block';
+            } else {
+                associationMemberImagePreview.style.display = 'none';
+                associationMemberImagePreview.src = '';
+            }
+            return;
+        }
+
+        associationMemberImagePreview.src = URL.createObjectURL(file);
+        associationMemberImagePreview.style.display = 'block';
     });
 }
 
@@ -1013,6 +1048,200 @@ function displayEventsList() {
     });
 }
 
+async function loadAssociationMembers() {
+    if (!associationMembersAdminList) return;
+
+    try {
+        const client = await window.waitForSupabaseClient();
+        const { data } = await client.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        const out = await apiRequest('/api/admin/association-members', { token });
+        associationMembers = out.members || [];
+        displayAssociationMembersAdminList();
+    } catch (error) {
+        console.error('Error loading association members:', error);
+        associationMembersAdminList.innerHTML = '<div class="error">Failed to load association members</div>';
+    }
+}
+
+function displayAssociationMembersAdminList() {
+    if (!associationMembersAdminList) return;
+
+    if (associationMembers.length === 0) {
+        associationMembersAdminList.innerHTML = '<div class="no-responses">No association members added yet</div>';
+        return;
+    }
+
+    associationMembersAdminList.innerHTML = associationMembers.map((member) => `
+        <div class="question-card">
+            <div class="question-details" style="display:flex; gap:14px; align-items:center;">
+                <div style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:#eef2ff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:28px;">
+                    ${member.image_url
+            ? `<img src="${escapeHtml(member.image_url)}" alt="${escapeHtml(member.name)}" style="width:100%; height:100%; object-fit:cover;">`
+            : escapeHtml(getAssociationIcon(member.role))}
+                </div>
+                <div>
+                    <h4>${escapeHtml(member.name)}</h4>
+                    <p>${escapeHtml(member.role)}</p>
+                    <p>Display order: ${member.display_order ?? '-'}</p>
+                </div>
+            </div>
+            <div class="question-actions">
+                <button type="button" class="btn btn-secondary btn-small" onclick="openAssociationMemberModal('${escapeJsString(String(member.id))}')">Edit</button>
+                <button type="button" class="btn-delete" onclick="deleteAssociationMember('${escapeJsString(String(member.id))}', '${escapeJsString(member.name)}')">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function resetAssociationMemberForm() {
+    if (!associationMemberForm) return;
+    associationMemberForm.reset();
+    if (associationMemberIdInput) associationMemberIdInput.value = '';
+    editingAssociationMemberImageUrl = '';
+    if (associationMemberImagePreview) {
+        associationMemberImagePreview.style.display = 'none';
+        associationMemberImagePreview.src = '';
+    }
+}
+
+function openAssociationMemberModal(memberId = '') {
+    if (!associationMemberModal) return;
+
+    resetAssociationMemberForm();
+
+    if (memberId) {
+        const member = associationMembers.find((item) => String(item.id) === String(memberId));
+        if (!member) return;
+
+        associationMemberModalTitle.textContent = 'Edit Association Member';
+        associationMemberIdInput.value = member.id;
+        associationMemberNameInput.value = member.name || '';
+        associationMemberRoleInput.value = member.role || '';
+        associationMemberOrderInput.value = member.display_order ?? '';
+        editingAssociationMemberImageUrl = member.image_url || '';
+
+        if (editingAssociationMemberImageUrl && associationMemberImagePreview) {
+            associationMemberImagePreview.src = editingAssociationMemberImageUrl;
+            associationMemberImagePreview.style.display = 'block';
+        }
+    } else {
+        associationMemberModalTitle.textContent = 'Add Association Member';
+    }
+
+    associationMemberModal.style.display = 'flex';
+}
+
+function closeAssociationMemberModal() {
+    if (!associationMemberModal) return;
+    associationMemberModal.style.display = 'none';
+    resetAssociationMemberForm();
+}
+
+async function uploadAssociationMemberImageIfAny() {
+    const file = associationMemberImageInput && associationMemberImageInput.files && associationMemberImageInput.files[0]
+        ? associationMemberImageInput.files[0]
+        : null;
+
+    if (!file) return editingAssociationMemberImageUrl || null;
+
+    const client = await window.waitForSupabaseClient();
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Not authenticated');
+
+    const dataBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            const index = result.indexOf(',');
+            resolve(index >= 0 ? result.slice(index + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('Failed to read image file'));
+        reader.readAsDataURL(file);
+    });
+
+    const out = await apiRequest('/api/admin/upload-association-image', {
+        method: 'POST',
+        token,
+        body: {
+            filename: file.name,
+            contentType: file.type || 'application/octet-stream',
+            dataBase64
+        }
+    });
+
+    return out?.url || null;
+}
+
+async function saveAssociationMember(event) {
+    event.preventDefault();
+
+    try {
+        const client = await window.waitForSupabaseClient();
+        const { data } = await client.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        const imageUrl = await uploadAssociationMemberImageIfAny();
+        const payload = {
+            name: associationMemberNameInput.value.trim(),
+            role: associationMemberRoleInput.value.trim(),
+            display_order: associationMemberOrderInput.value.trim(),
+            image_url: imageUrl
+        };
+
+        if (!payload.name || !payload.role) {
+            throw new Error('Name and role are required');
+        }
+
+        const memberId = associationMemberIdInput.value.trim();
+        if (memberId) {
+            await apiRequest(`/api/admin/association-members?id=${encodeURIComponent(memberId)}`, {
+                method: 'PUT',
+                token,
+                body: payload
+            });
+        } else {
+            await apiRequest('/api/admin/association-members', {
+                method: 'POST',
+                token,
+                body: payload
+            });
+        }
+
+        closeAssociationMemberModal();
+        await loadAssociationMembers();
+    } catch (error) {
+        console.error('Error saving association member:', error);
+        alert(`Failed to save association member: ${error?.message || error}`);
+    }
+}
+
+async function deleteAssociationMember(memberId, memberName) {
+    const ok = confirm(`Delete association member "${memberName || memberId}"?`);
+    if (!ok) return;
+
+    try {
+        const client = await window.waitForSupabaseClient();
+        const { data } = await client.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        await apiRequest(`/api/admin/association-members?id=${encodeURIComponent(memberId)}`, {
+            method: 'DELETE',
+            token
+        });
+
+        await loadAssociationMembers();
+    } catch (error) {
+        console.error('Error deleting association member:', error);
+        alert(`Failed to delete association member: ${error?.message || error}`);
+    }
+}
+
 async function deleteEvent(eventId, title) {
     if (!eventId) return;
 
@@ -1466,6 +1695,17 @@ function escapeJsString(text) {
         .replace(/\n/g, '\\n');
 }
 
+function getAssociationIcon(role) {
+    const value = String(role || '').toLowerCase();
+    if (value.includes('president')) return '👑';
+    if (value.includes('vice')) return '⭐';
+    if (value.includes('secretary')) return value.includes('technical') ? '💻' : value.includes('cultural') ? '🎭' : '📝';
+    if (value.includes('treasurer')) return '💰';
+    if (value.includes('sport')) return '🏅';
+    if (value.includes('coordinator')) return '🎯';
+    return '✨';
+}
+
 // Global functions for HTML onclick handlers
 function toggleMenu() {
     document.getElementById("navLinks").classList.toggle("active");
@@ -1547,6 +1787,27 @@ function initializeQuickQuestionForm() {
     }
 }
 
+function initializeAssociationMemberControls() {
+    if (addAssociationMemberBtn && !addAssociationMemberBtn.__bound) {
+        addAssociationMemberBtn.__bound = true;
+        addAssociationMemberBtn.addEventListener('click', () => openAssociationMemberModal());
+    }
+
+    if (associationMemberForm && !associationMemberForm.__bound) {
+        associationMemberForm.__bound = true;
+        associationMemberForm.addEventListener('submit', saveAssociationMember);
+    }
+
+    if (associationMemberModal && !associationMemberModal.__bound) {
+        associationMemberModal.__bound = true;
+        associationMemberModal.addEventListener('click', (event) => {
+            if (event.target === associationMemberModal) {
+                closeAssociationMemberModal();
+            }
+        });
+    }
+}
+
 // Load events when page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎯 DOMContentLoaded complete - Initializing handlers...');
@@ -1562,8 +1823,10 @@ async function initializeAdminDashboard() {
     adminDashboardInitialized = true;
 
     console.log('Admin dashboard authenticated - initializing handlers...');
+    initializeAssociationMemberControls();
     initializeQuickQuestionForm();
     initializeExportHandlers();
+    await loadAssociationMembers();
     await loadEvents();
     console.log('Admin dashboard ready');
 }

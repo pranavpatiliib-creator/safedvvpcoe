@@ -6,24 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Association | First Year Engineering</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="association.css">
-    <!-- FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <header>
         <nav class="navbar">
-
-            <!-- 🔹 LOGO + TEXT -->
             <a href="index.html" class="logo-container">
                 <img src="../images/logo.jpeg" alt="logo">
                 <span>First Year Engineering</span>
             </a>
 
-            <!-- 🔹 NAV LINKS -->
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html" class="active">Home</a></li>
                 <li><a href="faculty.html">Faculties</a></li>
@@ -32,44 +27,35 @@
                 <li><a href="#">Gallery</a></li>
             </ul>
 
-            <!-- 🔹 HAMBURGER -->
             <div class="hamburger" onclick="toggleMenu()">
                 ☰
             </div>
-
         </nav>
     </header>
 
-    <!-- 🔹 INTRO -->
     <section class="assoc-intro">
         <h2>Student Association</h2>
         <p>
             The First Year Engineering Student Association is dedicated to building
             leadership, creativity, and technical excellence among students. It plays
-            a vital role in shaping students’ personalities through various academic
+            a vital role in shaping students' personalities through various academic
             and extracurricular activities.
         </p>
     </section>
 
-    <!-- 🔹 ABOUT -->
     <section class="assoc-about">
         <div class="assoc-container">
-
             <h2>About the Association</h2>
-
             <p>
                 The association acts as a platform for students to collaborate,
                 innovate, and grow beyond academics. It encourages participation in
                 technical events, cultural programs, and sports activities to ensure
                 holistic development of every student.
             </p>
-
         </div>
     </section>
 
-
     <div class="activity-grid">
-
         <div class="activity-card">
             <img src="https://images.unsplash.com/photo-1518770660439-4636190af475" alt="Technical Events">
             <h3>Technical Events</h3>
@@ -93,85 +79,19 @@
             <h3>Skill Development</h3>
             <p>Communication, leadership, and personality growth.</p>
         </div>
-
     </div>
 
     <section class="assoc-members">
         <div class="assoc-container">
-
             <h2>Association Members</h2>
-
-            <div class="member-grid">
-
-                <div class="member-card">
-                    <div class="member-icon">👑</div>
-                    <h3>Niddhi Gupta</h3>
-                    <p class="role">President</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">⭐</div>
-                    <h3>Anushka Mote</h3>
-                    <p class="role">Vice President</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">📝</div>
-                    <h3>Samruddhi Ghodke</h3>
-                    <p class="role">Secretary</p>
-                </div>
-
-             <div class="member-card">
-                    <div class="member-icon">💰</div>
-                    <h3>Pranav Patil</h3>
-                    <p class="role">Treasurer</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">💻</div>
-                    <h3>Khushi Kalekar</h3>
-                    <p class="role">Technical Secretary</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">💻</div>
-                    <h3>Nandini Yeole</h3>
-                    <p class="role">Technical Secretary</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">🎭</div>
-                    <h3>Parita Solanki</h3>
-                    <p class="role">Cultural Secretary</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">🎭</div>
-                    <h3>Shantanu Kadu</h3>
-                    <p class="role">Cultural Secretary</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">🏅</div>
-                    <h3>Aditya Raskonda</h3>
-                    <p class="role">Sports Coordinator</p>
-                </div>
-
-                <div class="member-card">
-                    <div class="member-icon">🏅</div>
-                    <h3>Sarika Kapse</h3>
-                    <p class="role">Sports Coordinator</p>
-                </div>
-
+            <div class="member-grid" id="associationMembersGrid">
+                <div class="loading">Loading association members...</div>
             </div>
-
         </div>
     </section>
+
     <footer class="footer">
-
         <div class="footer-container">
-
-            <!-- 🔹 LEFT -->
             <div class="footer-col">
                 <h3>First Year Engineering</h3>
                 <p>
@@ -181,7 +101,6 @@
                 </p>
             </div>
 
-            <!-- 🔹 QUICK LINKS -->
             <div class="footer-col">
                 <h3>Quick Links</h3>
                 <ul>
@@ -193,32 +112,27 @@
                 </ul>
             </div>
 
-            <!-- 🔹 CONTACT -->
             <div class="footer-col">
                 <h3>Connect With Us</h3>
-                <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
-                <p>📧 pddvpcoesafe@gmail.com</p>
-                <p>📷 @pdvvpcoe.safe</p>
+                <p>Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
+                <p>pddvpcoesafe@gmail.com</p>
+                <p>@pdvvpcoe.safe</p>
             </div>
-
         </div>
 
-        <!-- 🔹 BOTTOM -->
         <div class="footer-bottom">
             <p>
                 © 2026 First Year Engineering Department. All rights reserved.
             </p>
         </div>
-
     </footer>
-    <!-- 🔹 JS -->
+
     <script>
         function toggleMenu() {
             document.getElementById("navLinks").classList.toggle("active");
         }
-
     </script>
-
+    <script src="js/association.js"></script>
 </body>
 
 </html>
