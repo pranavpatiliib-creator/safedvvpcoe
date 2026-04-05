@@ -11,9 +11,14 @@
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body.admin-auth-checking {
+            visibility: hidden;
+        }
+    </style>
 </head>
 
-<body>
+<body class="admin-auth-checking">
 
     <header>
         <nav class="navbar">
@@ -396,7 +401,6 @@
 
     <!-- 🔹 MAIN LOGIC -->
     <script src="js/admin-auth.js"></script>
-    <script src="js/admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => window.requireAdminAuth());
     </script>

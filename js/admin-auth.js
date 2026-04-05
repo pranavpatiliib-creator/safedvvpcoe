@@ -3,8 +3,37 @@
 // - On `admin-login.html`, call `initAdminLogin()` to enable login form.
 
 (function () {
+    let adminScriptPromise = null;
+
+    function loadAdminScript() {
+        if (window.__adminDashboardScriptLoaded) {
+            return Promise.resolve();
+        }
+
+        if (adminScriptPromise) {
+            return adminScriptPromise;
+        }
+
+        adminScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'js/admin.js';
+            script.async = false;
+            script.addEventListener('load', () => {
+                window.__adminDashboardScriptLoaded = true;
+                resolve();
+            });
+            script.addEventListener('error', () => {
+                reject(new Error('Failed to load admin dashboard script'));
+            });
+            document.body.appendChild(script);
+        });
+
+        return adminScriptPromise;
+    }
+
     async function requireAdminAuth() {
         try {
+            document.body.classList.add('admin-auth-checking');
             const client = await window.waitForSupabaseClient();
             const { data, error } = await client.auth.getSession();
             if (error) throw error;
@@ -14,6 +43,9 @@
                 window.location.href = 'admin-login.html';
                 return;
             }
+
+            document.body.classList.remove('admin-auth-checking');
+            document.body.classList.add('admin-authenticated');
 
             // Optional: show logged-in email if a placeholder exists
             const userEmailEl = document.getElementById('adminUserEmail');
@@ -34,9 +66,15 @@
                     }
                 });
             }
+
+            await loadAdminScript();
+            if (typeof window.initializeAdminDashboard === 'function') {
+                await window.initializeAdminDashboard();
+            }
         } catch (err) {
             console.error('Auth check failed:', err);
             alert(`Auth error: ${err?.message || err}`);
+            window.location.href = 'admin-login.html';
         }
     }
 
@@ -97,4 +135,3 @@
     window.requireAdminAuth = requireAdminAuth;
     window.initAdminLogin = initAdminLogin;
 })();
-

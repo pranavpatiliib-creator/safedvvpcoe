@@ -1555,3 +1555,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeExportHandlers();
     console.log('✅ All handlers initialized!');
 });
+let adminDashboardInitialized = false;
+
+async function initializeAdminDashboard() {
+    if (adminDashboardInitialized) return;
+    adminDashboardInitialized = true;
+
+    console.log('Admin dashboard authenticated - initializing handlers...');
+    initializeQuickQuestionForm();
+    initializeExportHandlers();
+    await loadEvents();
+    console.log('Admin dashboard ready');
+}
+
+window.initializeAdminDashboard = initializeAdminDashboard;
