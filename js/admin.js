@@ -1022,6 +1022,14 @@ function displayEventsList() {
         <div class="event-item" onclick="selectEvent('${escapeJsString(String(event.id))}', '${escapeJsString(event.title)}', this)">
             <div class="event-item-title">${escapeHtml(event.title)}</div>
             <div class="event-item-count">Responses: <span id="count-${event.id}">-</span></div>
+            <div class="event-item-actions">
+                <button type="button" class="event-action-btn event-action-share" onclick="shareEventLink('${escapeJsString(String(event.id))}', event)">
+                    Share
+                </button>
+                <button type="button" class="event-action-btn event-action-delete" onclick="deleteEvent('${escapeJsString(String(event.id))}', '${escapeJsString(event.title)}', event)">
+                    Delete
+                </button>
+            </div>
         </div>
     `).join('');
 
@@ -1265,7 +1273,39 @@ async function deleteAssociationMember(memberId, memberName) {
     }
 }
 
-async function deleteEvent(eventId, title) {
+async function shareEventLink(eventId, clickEvent) {
+    if (clickEvent) {
+        clickEvent.preventDefault();
+        clickEvent.stopPropagation();
+    }
+
+    const eventUrl = `${window.location.origin}${window.location.pathname.replace(/admin\.html$/i, 'event.html')}?event_id=${encodeURIComponent(eventId)}`;
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(eventUrl);
+        } else {
+            const input = document.createElement('input');
+            input.value = eventUrl;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+        }
+
+        alert('Event link copied successfully');
+    } catch (error) {
+        console.error('Share link error:', error);
+        alert(`Failed to copy event link: ${error?.message || error}`);
+    }
+}
+
+async function deleteEvent(eventId, title, clickEvent) {
+    if (clickEvent) {
+        clickEvent.preventDefault();
+        clickEvent.stopPropagation();
+    }
+
     if (!eventId) return;
 
     const ok = confirm(`Delete event "${title || eventId}"?\n\nThis will also delete its questions and responses.`);

@@ -1072,6 +1072,36 @@ section {
     margin-top: 4px;
 }
 
+.event-item-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.event-action-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.event-action-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.event-action-share {
+    background: #16a34a;
+}
+
+.event-action-delete {
+    background: #ef4444;
+}
+
 .main-content {
     background: white;
     padding: 30px;
