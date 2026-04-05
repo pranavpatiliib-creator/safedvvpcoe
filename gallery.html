@@ -4,12 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - First Year Engineering</title>
-
-    <!-- CSS -->
+    <title>Gallery - First Year Engineering</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 
@@ -26,7 +22,7 @@
                 <li><a href="faculty.html">Faculties</a></li>
                 <li><a href="association.html">Association</a></li>
                 <li><a href="events.html">Events</a></li>
-                <li><a href="gallery.html">Gallery</a></li>
+                <li><a href="gallery.html" class="active">Gallery</a></li>
             </ul>
 
             <div class="hamburger" onclick="toggleMenu()">
@@ -35,31 +31,26 @@
         </nav>
     </header>
 
-    <section class="registration-section">
-        <div class="registration-wrapper">
-            <div class="event-details" style="background: white; color: #1a2a44;">
-                <h1 style="margin: 0 0 10px 0;">Admin Login</h1>
-                <p style="margin: 0; color: #666;">Sign in to manage events and responses.</p>
+    <section class="events-section">
+        <h2 class="events-title">Gallery</h2>
+        <p class="events-subtitle">A quick glimpse into the activities and memories of First Year Engineering.</p>
+
+        <div class="events-grid">
+            <div class="event-card">
+                <div class="event-card-front">
+                    <img class="event-flyer" src="images/collegephoto.jpg" alt="Campus">
+                </div>
             </div>
-
-            <form id="adminLoginForm" class="registration-form" style="display:block; margin-top: 20px;">
-                <div class="form-group">
-                    <label for="adminEmail" class="required">Email</label>
-                    <input type="email" id="adminEmail" placeholder="Enter admin email" required>
+            <div class="event-card">
+                <div class="event-card-front">
+                    <img class="event-flyer" src="images/SAFE-Team.jpeg" alt="SAFE Team">
                 </div>
-
-                <div class="form-group">
-                    <label for="adminPassword" class="required">Password</label>
-                    <input type="password" id="adminPassword" placeholder="Enter password" required>
+            </div>
+            <div class="event-card">
+                <div class="event-card-front">
+                    <img class="event-flyer" src="images/logo.jpeg" alt="Department Logo">
                 </div>
-
-                <div id="adminLoginError" style="color:#c0392b; font-size: 13px; margin: 10px 0;"></div>
-
-                <div class="button-group">
-                    <button id="adminLoginBtn" type="submit" class="btn btn-primary">Login</button>
-                    <a href="index.html" class="btn btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Cancel</a>
-                </div>
-            </form>
+            </div>
         </div>
     </section>
 
@@ -87,16 +78,14 @@
 
             <div class="footer-col">
                 <h3>Connect With Us</h3>
-                <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
-                <p>📧 pddvpcoesafe@gmail.com</p>
-                <p>📷 @pdvvpcoe.safe</p>
+                <p>Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
+                <p>pddvpcoesafe@gmail.com</p>
+                <p>@pdvvpcoe.safe</p>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <p>
-                © 2026 First Year Engineering Department. All rights reserved.
-            </p>
+            <p>© 2026 First Year Engineering Department. All rights reserved.</p>
         </div>
     </footer>
 
@@ -105,19 +94,6 @@
             document.getElementById("navLinks").classList.toggle("active");
         }
     </script>
-
-    <!-- Supabase (CDN; local vendor fallback handled in js/supabase-client.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/main.min.js"></script>
-
-    <script src="config-local.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/admin-auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => window.initAdminLogin());
-    </script>
 </body>
 
 </html>
-
-
