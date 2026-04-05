@@ -1,8 +1,8 @@
 // ===============================================================
 // EVENT DETAIL & REGISTRATION
-// ==============================================================
+// ===============================================================
 
-console.log('✅ event-detai.js loaded');
+console.log('event-detai.js loaded');
 window.__eventDetailLoaded = true;
 
 const eventDetailsDiv = document.getElementById('eventDetails');
@@ -13,15 +13,11 @@ const successMessage = document.getElementById('successMessage');
 let currentEvent = null;
 let currentQuestions = [];
 
-// Get event_id from URL
 function getEventIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    const raw = params.get('event_id');
-    if (!raw) return null;
-    return raw;
+    return params.get('event_id');
 }
 
-// Load event details and questions
 async function loadEventDetails() {
     const eventId = getEventIdFromUrl();
 
@@ -37,7 +33,7 @@ async function loadEventDetails() {
         if (!eventRes.ok) throw new Error(eventData?.error || 'Failed to fetch events');
 
         const events = eventData?.events || [];
-        const matched = events.find(item => String(item.id) === String(eventId));
+        const matched = events.find((item) => String(item.id) === String(eventId));
         if (!matched) {
             showError('Event not found');
             return;
@@ -45,26 +41,36 @@ async function loadEventDetails() {
 
         currentEvent = matched;
 
-        // Display event details
-        eventDetailsDiv.innerHTML = `
-            <h1>${escapeHtml(currentEvent.title)}</h1>
-            <div class="event-meta">
-                <div class="event-meta-item">
-                    <span>📅</span>
-                    <span>${new Date(currentEvent.date).toLocaleDateString('en-US', {
+        const formattedDate = new Date(currentEvent.date).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
-        })}</span>
-                </div>
+        });
+
+        eventDetailsDiv.innerHTML = `
+            <div class="event-hero-title-wrap">
+                <p class="event-kicker">Upcoming Event</p>
+                <h1 class="event-hero-title">${escapeHtml(currentEvent.title)}</h1>
             </div>
-            <div class="event-description">
-                <p>${escapeHtml(currentEvent.description || 'No description available')}</p>
+            <div class="event-hero-card">
+                ${currentEvent.flyer_url
+            ? `<div class="event-hero-image-wrap">
+                        <img class="event-hero-image" src="${escapeHtml(currentEvent.flyer_url)}" alt="${escapeHtml(currentEvent.title)} flyer">
+                   </div>`
+            : ''}
+                <div class="event-meta">
+                    <div class="event-meta-item">
+                        <span class="event-meta-icon">Date</span>
+                        <span>${formattedDate}</span>
+                    </div>
+                </div>
+                <div class="event-description">
+                    <p>${escapeHtml(currentEvent.description || 'No description available')}</p>
+                </div>
             </div>
         `;
 
-        // Fetch questions
         const questionRes = await fetch(`/api/public-questions?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
         const questionData = await questionRes.json().catch(() => null);
         if (!questionRes.ok) throw new Error(questionData?.error || 'Failed to fetch questions');
@@ -72,10 +78,7 @@ async function loadEventDetails() {
         currentQuestions = questionData?.questions || [];
         console.log('Loaded questions:', currentQuestions.length);
 
-        // Generate form
         generateDynamicForm();
-
-        // Show form
         registrationForm.style.display = 'block';
     } catch (error) {
         console.error('Error loading event details:', error);
@@ -84,10 +87,8 @@ async function loadEventDetails() {
     }
 }
 
-// Expose for the shim (without changing HTML)
 window.__loadEventDetails = loadEventDetails;
 
-// Generate dynamic registration form
 function generateDynamicForm() {
     questionsContainer.innerHTML = '';
 
@@ -102,7 +103,6 @@ function generateDynamicForm() {
     });
 }
 
-// Create form field based on question type
 function createFormField(question, index) {
     const div = document.createElement('div');
     div.className = 'form-group';
@@ -114,28 +114,23 @@ function createFormField(question, index) {
         case 'text':
             fieldHTML += `<input type="text" id="q${index}" name="q${index}" ${isRequired ? 'required' : ''} placeholder="Enter your answer">`;
             break;
-
         case 'email':
             fieldHTML += `<input type="email" id="q${index}" name="q${index}" ${isRequired ? 'required' : ''} placeholder="Enter your email">`;
             break;
-
         case 'number':
             fieldHTML += `<input type="number" id="q${index}" name="q${index}" ${isRequired ? 'required' : ''} placeholder="Enter a number">`;
             break;
-
         case 'textarea':
             fieldHTML += `<textarea id="q${index}" name="q${index}" ${isRequired ? 'required' : ''} placeholder="Enter your answer"></textarea>`;
             break;
-
         case 'select':
             fieldHTML += `<select id="q${index}" name="q${index}" ${isRequired ? 'required' : ''}>
                 <option value="">-- Select an option --</option>
-                ${(question.options || []).map(opt => `
+                ${(question.options || []).map((opt) => `
                     <option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>
                 `).join('')}
             </select>`;
             break;
-
         case 'radio':
             fieldHTML += '<div class="radio-group">';
             (question.options || []).forEach((opt, optIndex) => {
@@ -148,7 +143,6 @@ function createFormField(question, index) {
             });
             fieldHTML += '</div>';
             break;
-
         case 'checkbox':
             fieldHTML += '<div class="checkbox-group">';
             (question.options || []).forEach((opt, optIndex) => {
@@ -161,7 +155,6 @@ function createFormField(question, index) {
             });
             fieldHTML += '</div>';
             break;
-
         default:
             fieldHTML += `<input type="text" id="q${index}" name="q${index}" ${isRequired ? 'required' : ''}>`;
     }
@@ -170,7 +163,6 @@ function createFormField(question, index) {
     return div;
 }
 
-// Escape HTML to prevent XSS
 function escapeHtml(text) {
     if (!text) return '';
     const map = {
@@ -180,10 +172,9 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return text.replace(/[&<>"']/g, (match) => map[match]);
 }
 
-// Collect form data
 function collectFormData() {
     const answers = {};
 
@@ -192,11 +183,9 @@ function collectFormData() {
         const questionType = question.type;
 
         if (questionType === 'checkbox') {
-            // Collect all checked checkboxes
             const checkboxes = document.querySelectorAll(`input[name="q${index}"]:checked`);
-            answers[questionId] = Array.from(checkboxes).map(cb => cb.value);
+            answers[questionId] = Array.from(checkboxes).map((checkbox) => checkbox.value);
         } else {
-            // Get single value
             const element = document.querySelector(`[name="q${index}"]`);
             answers[questionId] = element ? element.value : '';
         }
@@ -205,15 +194,13 @@ function collectFormData() {
     return answers;
 }
 
-// Handle form submission
 registrationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     try {
-        // Collect data
         const answers = collectFormData();
 
-        const r = await fetch('/api/public-submit-response', {
+        const response = await fetch('/api/public-submit-response', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -222,16 +209,13 @@ registrationForm.addEventListener('submit', async (e) => {
             })
         });
 
-        const data = await r.json().catch(() => null);
-        if (!r.ok) {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
             throw new Error(data?.error || data?.message || 'Failed to submit response');
         }
 
-        // Hide form and show success message
         registrationForm.style.display = 'none';
         successMessage.style.display = 'block';
-
-        // Scroll to success message
         successMessage.scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
         console.error('Error submitting registration:', error);
@@ -240,10 +224,8 @@ registrationForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Show error message
 function showError(message) {
     eventDetailsDiv.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
 }
 
-// Load event details when page loads
 document.addEventListener('DOMContentLoaded', loadEventDetails);
