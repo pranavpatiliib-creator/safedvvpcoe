@@ -58,6 +58,9 @@
                 <div id="eventsList" class="events-list">
                     <div class="loading">Loading events...</div>
                 </div>
+                <button id="toggleAssociationPanelBtn" class="sidebar-toggle-btn" type="button" aria-expanded="false">
+                    Association Members
+                </button>
             </aside>
 
             <!-- 🔹 ADD EVENT MODAL -->
@@ -216,6 +219,7 @@
             </div>
 
             <section class="main-content">
+                <div id="associationMembersSection" style="display: none;">
                 <div class="section-header">
                     <h2>Association Members</h2>
                     <button id="addAssociationMemberBtn" class="btn btn-primary" type="button">Add Member</button>
@@ -223,6 +227,7 @@
 
                 <div id="associationMembersAdminList" class="questions-list">
                     <div class="loading">Loading association members...</div>
+                </div>
                 </div>
 
                 <div id="associationMemberModal" class="modal" style="display: none;">

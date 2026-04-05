@@ -52,7 +52,9 @@ const eventDateInput = document.getElementById('eventDate');
 const eventFlyerInput = document.getElementById('eventFlyer');
 const eventFlyerPreview = document.getElementById('eventFlyerPreview');
 const associationMembersAdminList = document.getElementById('associationMembersAdminList');
+const associationMembersSection = document.getElementById('associationMembersSection');
 const addAssociationMemberBtn = document.getElementById('addAssociationMemberBtn');
+const toggleAssociationPanelBtn = document.getElementById('toggleAssociationPanelBtn');
 const associationMemberModal = document.getElementById('associationMemberModal');
 const associationMemberModalTitle = document.getElementById('associationMemberModalTitle');
 const associationMemberForm = document.getElementById('associationMemberForm');
@@ -88,6 +90,7 @@ let tempEventQuestions = []; // Temporary storage for questions before publishin
 let editingQuestionId = null;
 let associationMembers = [];
 let editingAssociationMemberImageUrl = '';
+let isAssociationPanelOpen = false;
 let pdfQuestionSelectionState = {};
 let pdfBlankColumns = [];
 let wordQuestionSelectionState = {};
@@ -1096,6 +1099,26 @@ function displayAssociationMembersAdminList() {
     `).join('');
 }
 
+function setAssociationPanelOpen(isOpen) {
+    isAssociationPanelOpen = !!isOpen;
+
+    if (associationMembersSection) {
+        associationMembersSection.style.display = isAssociationPanelOpen ? 'block' : 'none';
+    }
+
+    if (toggleAssociationPanelBtn) {
+        toggleAssociationPanelBtn.classList.toggle('active', isAssociationPanelOpen);
+        toggleAssociationPanelBtn.setAttribute('aria-expanded', String(isAssociationPanelOpen));
+        toggleAssociationPanelBtn.textContent = isAssociationPanelOpen
+            ? 'Hide Association Members'
+            : 'Association Members';
+    }
+}
+
+function toggleAssociationPanel() {
+    setAssociationPanelOpen(!isAssociationPanelOpen);
+}
+
 function resetAssociationMemberForm() {
     if (!associationMemberForm) return;
     associationMemberForm.reset();
@@ -1788,6 +1811,11 @@ function initializeQuickQuestionForm() {
 }
 
 function initializeAssociationMemberControls() {
+    if (toggleAssociationPanelBtn && !toggleAssociationPanelBtn.__bound) {
+        toggleAssociationPanelBtn.__bound = true;
+        toggleAssociationPanelBtn.addEventListener('click', toggleAssociationPanel);
+    }
+
     if (addAssociationMemberBtn && !addAssociationMemberBtn.__bound) {
         addAssociationMemberBtn.__bound = true;
         addAssociationMemberBtn.addEventListener('click', () => openAssociationMemberModal());
@@ -1806,6 +1834,8 @@ function initializeAssociationMemberControls() {
             }
         });
     }
+
+    setAssociationPanelOpen(false);
 }
 
 // Load events when page loads

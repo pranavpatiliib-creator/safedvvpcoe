@@ -9,3 +9,17 @@ create table if not exists public.association_members (
 
 create index if not exists association_members_display_order_idx
     on public.association_members (display_order, name);
+
+insert into public.association_members (name, role, image_url, display_order)
+values
+    ('Niddhi Gupta', 'President', null, 1),
+    ('Anushka Mote', 'Vice President', null, 2),
+    ('Samruddhi Ghodke', 'Secretary', null, 3),
+    ('Pranav Patil', 'Treasurer', null, 4),
+    ('Khushi Kalekar', 'Technical Secretary', null, 5),
+    ('Nandini Yeole', 'Technical Secretary', null, 6),
+    ('Parita Solanki', 'Cultural Secretary', null, 7),
+    ('Shantanu Kadu', 'Cultural Secretary', null, 8),
+    ('Aditya Raskonda', 'Sports Coordinator', null, 9),
+    ('Sarika Kapse', 'Sports Coordinator', null, 10)
+on conflict do nothing;

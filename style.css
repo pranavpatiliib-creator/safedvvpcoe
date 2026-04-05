@@ -977,6 +977,32 @@ section {
     gap: 8px;
 }
 
+.sidebar-toggle-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid #d7def3;
+    border-radius: 10px;
+    background: #f8faff;
+    color: #1a2a44;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+    text-align: left;
+}
+
+.sidebar-toggle-btn:hover {
+    background: #eef3ff;
+    border-color: #667eea;
+}
+
+.sidebar-toggle-btn.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: #ffffff;
+}
+
 .event-item {
     padding: 12px;
     background: #f5f7fa;
