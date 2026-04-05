@@ -10,6 +10,17 @@ const refreshBtn = document.getElementById('refreshBtn');
 
 let allEvents = [];
 
+function isRegistrationClosed(eventDate) {
+    if (!eventDate) return false;
+    const parsedDate = new Date(eventDate);
+    if (Number.isNaN(parsedDate.getTime())) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    parsedDate.setHours(0, 0, 0, 0);
+    return parsedDate < today;
+}
+
 async function refreshEvents() {
     console.log('Refreshing events...');
     if (refreshBtn) {
@@ -82,6 +93,7 @@ function displayEvents(events) {
     }
 
     eventsContainer.innerHTML = events.map((event) => {
+        const registrationClosed = isRegistrationClosed(event.date);
         const flyerMarkup = event.flyer_url
             ? `<img class="event-flyer" src="${escapeHtml(event.flyer_url)}" alt="${escapeHtml(event.title)} flyer">`
             : '<div class="event-flyer event-flyer-placeholder">Event Flyer</div>';
@@ -105,9 +117,14 @@ function displayEvents(events) {
                             <h3>${escapeHtml(event.title)}</h3>
                             <span class="date">${fullDate}</span>
                             <p>${escapeHtml(event.description || 'No description available')}</p>
-                            <button class="event-overlay-register" onclick="registerEvent('${escapeJsString(String(event.id))}')">
-                                Register Now
-                            </button>
+                            ${registrationClosed
+                ? `<div class="event-status-message">
+                                    <span class="event-status-pill">Registration Closed</span>
+                                    <p>Thank you to everyone who supported and helped make this event successful.</p>
+                               </div>`
+                : `<button class="event-overlay-register" onclick="registerEvent('${escapeJsString(String(event.id))}')">
+                                    Register Now
+                               </button>`}
                         </div>
                     </div>
                 </div>

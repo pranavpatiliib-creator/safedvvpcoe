@@ -13,6 +13,17 @@ const successMessage = document.getElementById('successMessage');
 let currentEvent = null;
 let currentQuestions = [];
 
+function isRegistrationClosed(eventDate) {
+    if (!eventDate) return false;
+    const parsedDate = new Date(eventDate);
+    if (Number.isNaN(parsedDate.getTime())) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    parsedDate.setHours(0, 0, 0, 0);
+    return parsedDate < today;
+}
+
 function getEventIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return params.get('event_id');
@@ -40,6 +51,7 @@ async function loadEventDetails() {
         }
 
         currentEvent = matched;
+        const registrationClosed = isRegistrationClosed(currentEvent.date);
 
         const formattedDate = new Date(currentEvent.date).toLocaleDateString('en-US', {
             weekday: 'long',
@@ -68,6 +80,13 @@ async function loadEventDetails() {
                 <div class="event-description">
                     <p>${escapeHtml(currentEvent.description || 'No description available')}</p>
                 </div>
+                ${registrationClosed
+                ? `<div class="event-closed-note">
+                        <span class="event-status-pill">Registration Closed</span>
+                        <h2>Thank You</h2>
+                        <p>Thank you to all students, faculty members, coordinators, volunteers, and supporters who helped make this event successful.</p>
+                   </div>`
+                : ''}
             </div>
         `;
 
@@ -79,7 +98,8 @@ async function loadEventDetails() {
         console.log('Loaded questions:', currentQuestions.length);
 
         generateDynamicForm();
-        registrationForm.style.display = 'block';
+        registrationForm.style.display = registrationClosed ? 'none' : 'block';
+        successMessage.style.display = 'none';
     } catch (error) {
         console.error('Error loading event details:', error);
         showError('Failed to load event details');

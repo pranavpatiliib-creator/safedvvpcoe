@@ -571,6 +571,18 @@ section {
     transform: translateY(0);
 }
 
+.event-status-message {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.event-status-message p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.86);
+    line-height: 1.6;
+}
+
 .event-card:focus {
     outline: none;
 }
@@ -739,6 +751,42 @@ section {
     line-height: 1.8;
     font-size: 1.05rem;
     color: rgba(255, 255, 255, 0.94);
+}
+
+.event-closed-note {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: 18px;
+    background: rgba(10, 18, 38, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.event-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(248, 113, 113, 0.18);
+    border: 1px solid rgba(254, 202, 202, 0.34);
+    color: #fee2e2;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.event-closed-note h2 {
+    margin: 1rem 0 0.65rem;
+    font-size: 1.7rem;
+    color: #ffffff;
+}
+
+.event-closed-note p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.75;
 }
 
 .registration-form {
