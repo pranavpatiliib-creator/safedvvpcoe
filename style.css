@@ -1234,6 +1234,48 @@ section {
     align-items: flex-start;
 }
 
+.association-member-card {
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.association-member-card.dragging {
+    opacity: 0.65;
+    cursor: grabbing;
+}
+
+.association-member-card.drag-over {
+    border-left-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
+    transform: translateY(-2px);
+}
+
+.drag-handle {
+    flex-shrink: 0;
+    color: #94a3b8;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: grab;
+    user-select: none;
+    padding-top: 6px;
+}
+
+.export-column-item {
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.export-column-item.dragging {
+    opacity: 0.7;
+    cursor: grabbing;
+}
+
+.export-column-item.drag-over {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
+    transform: translateY(-1px);
+}
+
 .question-details h4 {
     margin: 0 0 5px 0;
     color: #1a2a44;

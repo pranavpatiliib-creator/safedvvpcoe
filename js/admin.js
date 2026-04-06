@@ -91,9 +91,12 @@ let editingQuestionId = null;
 let associationMembers = [];
 let editingAssociationMemberImageUrl = '';
 let isAssociationPanelOpen = false;
+let draggedAssociationMemberId = null;
 let pdfColumnSelectionState = {};
+let pdfColumnOrder = [];
 let pdfBlankColumns = [];
 let wordColumnSelectionState = {};
+let wordColumnOrder = [];
 let wordBlankColumns = [];
 
 async function apiRequest(path, { method = 'GET', token, body } = {}) {
@@ -125,6 +128,7 @@ async function apiRequest(path, { method = 'GET', token, body } = {}) {
 
 function resetPdfOptions() {
     pdfColumnSelectionState = {};
+    pdfColumnOrder = [];
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
@@ -135,6 +139,7 @@ function resetPdfOptions() {
 
 function resetWordOptions() {
     wordColumnSelectionState = {};
+    wordColumnOrder = [];
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = '';
     renderWordOptionsPanel();
@@ -264,6 +269,18 @@ function getExportQuestionColumns(question) {
     }];
 }
 
+function ensureExportColumnOrder(orderState, columns) {
+    const availableKeys = columns.map((column) => column.stateKey);
+    const preservedKeys = orderState.filter((key) => availableKeys.includes(key));
+    const missingKeys = availableKeys.filter((key) => !preservedKeys.includes(key));
+    return [...preservedKeys, ...missingKeys];
+}
+
+function getOrderedExportColumns(allColumns, orderState) {
+    const columnsByKey = new Map(allColumns.map((column) => [column.stateKey, column]));
+    return orderState.map((key) => columnsByKey.get(key)).filter(Boolean);
+}
+
 function renderExportColumnItem(column, state, checkboxClass, inputClass) {
     const stateKey = column.stateKey;
     const current = state[stateKey];
@@ -278,7 +295,7 @@ function renderExportColumnItem(column, state, checkboxClass, inputClass) {
     }
 
     return `
-        <label style="display:grid; grid-template-columns:auto 1fr; gap:10px 12px; align-items:start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+        <label class="${checkboxClass.includes('pdf') ? 'pdf-column-item' : 'word-column-item'} export-column-item" draggable="true" data-column-key="${escapeHtml(stateKey)}" style="display:grid; grid-template-columns:auto 1fr; gap:10px 12px; align-items:start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
             <input type="checkbox" class="${checkboxClass}" data-column-key="${escapeHtml(stateKey)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
             <div style="display:grid; gap:6px; width:100%;">
                 <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(column.label)}</span>
@@ -291,8 +308,10 @@ function renderExportColumnItem(column, state, checkboxClass, inputClass) {
 function renderPdfOptionsPanel() {
     if (!pdfColumnChecklist || !pdfBlankColumnsList) return;
 
-    const questionItems = allQuestions
-        .flatMap((question) => getExportQuestionColumns(question))
+    const exportColumns = allQuestions.flatMap((question) => getExportQuestionColumns(question));
+    pdfColumnOrder = ensureExportColumnOrder(pdfColumnOrder, exportColumns);
+
+    const questionItems = getOrderedExportColumns(exportColumns, pdfColumnOrder)
         .map((column) => renderExportColumnItem(column, pdfColumnSelectionState, 'pdf-column-checkbox', 'pdf-column-label-input'))
         .join('');
 
@@ -315,13 +334,18 @@ function renderPdfOptionsPanel() {
     `).join('');
 
     pdfBlankColumnsList.innerHTML = blankItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No custom blank columns added.</div>';
+    bindExportColumnDragAndDrop(pdfColumnChecklist, 'pdf-column-item', (newOrder) => {
+        pdfColumnOrder = newOrder;
+    });
 }
 
 function renderWordOptionsPanel() {
     if (!wordColumnChecklist || !wordBlankColumnsList) return;
 
-    const questionItems = allQuestions
-        .flatMap((question) => getExportQuestionColumns(question))
+    const exportColumns = allQuestions.flatMap((question) => getExportQuestionColumns(question));
+    wordColumnOrder = ensureExportColumnOrder(wordColumnOrder, exportColumns);
+
+    const questionItems = getOrderedExportColumns(exportColumns, wordColumnOrder)
         .map((column) => renderExportColumnItem(column, wordColumnSelectionState, 'word-column-checkbox', 'word-column-label-input'))
         .join('');
 
@@ -344,6 +368,9 @@ function renderWordOptionsPanel() {
     `).join('');
 
     wordBlankColumnsList.innerHTML = blankItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No custom blank columns added.</div>';
+    bindExportColumnDragAndDrop(wordColumnChecklist, 'word-column-item', (newOrder) => {
+        wordColumnOrder = newOrder;
+    });
 }
 
 function collectPdfColumns() {
@@ -371,8 +398,10 @@ function collectPdfColumns() {
         };
     });
 
-    allQuestions
-        .flatMap((question) => getExportQuestionColumns(question))
+    const exportColumns = allQuestions.flatMap((question) => getExportQuestionColumns(question));
+    pdfColumnOrder = ensureExportColumnOrder(pdfColumnOrder, exportColumns);
+
+    getOrderedExportColumns(exportColumns, pdfColumnOrder)
         .forEach((column) => {
             if (!selectedKeys.has(column.stateKey)) return;
             const current = pdfColumnSelectionState[column.stateKey] || {};
@@ -419,8 +448,10 @@ function collectWordColumns() {
         };
     });
 
-    allQuestions
-        .flatMap((question) => getExportQuestionColumns(question))
+    const exportColumns = allQuestions.flatMap((question) => getExportQuestionColumns(question));
+    wordColumnOrder = ensureExportColumnOrder(wordColumnOrder, exportColumns);
+
+    getOrderedExportColumns(exportColumns, wordColumnOrder)
         .forEach((column) => {
             if (!selectedKeys.has(column.stateKey)) return;
             const current = wordColumnSelectionState[column.stateKey] || {};
@@ -446,6 +477,75 @@ function capitalizeFirstLetter(text) {
     const value = String(text ?? '').trim();
     if (!value) return '';
     return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function bindExportColumnDragAndDrop(container, itemClass, updateOrder) {
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll(`.${itemClass}`));
+    if (!items.length) return;
+
+    let draggedKey = null;
+
+    const clearDragState = () => {
+        items.forEach((item) => item.classList.remove('dragging', 'drag-over'));
+    };
+
+    items.forEach((item) => {
+        item.addEventListener('dragstart', (event) => {
+            const key = String(item.dataset.columnKey || '');
+            if (!key) return;
+            draggedKey = key;
+            item.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', key);
+        });
+
+        item.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            const key = String(item.dataset.columnKey || '');
+            if (!draggedKey || !key || key === draggedKey) return;
+            event.dataTransfer.dropEffect = 'move';
+            item.classList.add('drag-over');
+        });
+
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (event) => {
+            event.preventDefault();
+            const targetKey = String(item.dataset.columnKey || '');
+            const sourceKey = draggedKey || String(event.dataTransfer.getData('text/plain') || '');
+            if (!sourceKey || !targetKey || sourceKey === targetKey) {
+                clearDragState();
+                draggedKey = null;
+                return;
+            }
+
+            const currentOrder = items.map((entry) => String(entry.dataset.columnKey || '')).filter(Boolean);
+            const sourceIndex = currentOrder.indexOf(sourceKey);
+            const targetIndex = currentOrder.indexOf(targetKey);
+            if (sourceIndex < 0 || targetIndex < 0) {
+                clearDragState();
+                draggedKey = null;
+                return;
+            }
+
+            currentOrder.splice(sourceIndex, 1);
+            currentOrder.splice(targetIndex, 0, sourceKey);
+            updateOrder(currentOrder);
+            clearDragState();
+            draggedKey = null;
+            renderPdfOptionsPanel();
+            renderWordOptionsPanel();
+        });
+
+        item.addEventListener('dragend', () => {
+            clearDragState();
+            draggedKey = null;
+        });
+    });
 }
 
 function getPdfOrientation() {
@@ -1188,8 +1288,9 @@ function displayAssociationMembersAdminList() {
     }
 
     associationMembersAdminList.innerHTML = associationMembers.map((member) => `
-        <div class="question-card">
+        <div class="question-card association-member-card" draggable="true" data-member-id="${escapeHtml(String(member.id))}">
             <div class="question-details" style="display:flex; gap:14px; align-items:center;">
+                <div class="drag-handle" title="Drag to reorder" aria-hidden="true">::</div>
                 <div style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:#eef2ff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:28px;">
                     ${member.image_url
             ? `<img src="${escapeHtml(member.image_url)}" alt="${escapeHtml(member.name)}" style="width:100%; height:100%; object-fit:cover;">`
@@ -1207,6 +1308,114 @@ function displayAssociationMembersAdminList() {
             </div>
         </div>
     `).join('');
+
+    bindAssociationMemberDragAndDrop();
+}
+
+function bindAssociationMemberDragAndDrop() {
+    if (!associationMembersAdminList) return;
+
+    const cards = associationMembersAdminList.querySelectorAll('.association-member-card');
+    cards.forEach((card) => {
+        card.addEventListener('dragstart', onAssociationMemberDragStart);
+        card.addEventListener('dragover', onAssociationMemberDragOver);
+        card.addEventListener('drop', onAssociationMemberDrop);
+        card.addEventListener('dragend', onAssociationMemberDragEnd);
+        card.addEventListener('dragleave', onAssociationMemberDragLeave);
+    });
+}
+
+function onAssociationMemberDragStart(event) {
+    const card = event.currentTarget;
+    const memberId = String(card?.dataset.memberId || '');
+    if (!memberId) return;
+
+    draggedAssociationMemberId = memberId;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', memberId);
+    card.classList.add('dragging');
+}
+
+function onAssociationMemberDragOver(event) {
+    event.preventDefault();
+    const card = event.currentTarget;
+    if (!card || String(card.dataset.memberId || '') === draggedAssociationMemberId) return;
+    event.dataTransfer.dropEffect = 'move';
+    card.classList.add('drag-over');
+}
+
+function onAssociationMemberDragLeave(event) {
+    const card = event.currentTarget;
+    if (!card) return;
+    card.classList.remove('drag-over');
+}
+
+async function onAssociationMemberDrop(event) {
+    event.preventDefault();
+    const targetCard = event.currentTarget;
+    if (!targetCard) return;
+
+    targetCard.classList.remove('drag-over');
+
+    const targetMemberId = String(targetCard.dataset.memberId || '');
+    const sourceMemberId = draggedAssociationMemberId || String(event.dataTransfer.getData('text/plain') || '');
+    if (!sourceMemberId || !targetMemberId || sourceMemberId === targetMemberId) return;
+
+    const sourceIndex = associationMembers.findIndex((member) => String(member.id) === sourceMemberId);
+    const targetIndex = associationMembers.findIndex((member) => String(member.id) === targetMemberId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const [movedMember] = associationMembers.splice(sourceIndex, 1);
+    associationMembers.splice(targetIndex, 0, movedMember);
+    associationMembers = associationMembers.map((member, index) => ({
+        ...member,
+        display_order: index + 1
+    }));
+
+    displayAssociationMembersAdminList();
+
+    try {
+        await saveAssociationMemberOrder();
+    } catch (error) {
+        console.error('Error saving association member order:', error);
+        alert(`Failed to save new member order: ${error?.message || error}`);
+        await loadAssociationMembers();
+    }
+}
+
+function onAssociationMemberDragEnd(event) {
+    const card = event.currentTarget;
+    if (card) {
+        card.classList.remove('dragging');
+        card.classList.remove('drag-over');
+    }
+
+    associationMembersAdminList?.querySelectorAll('.association-member-card').forEach((item) => {
+        item.classList.remove('dragging');
+        item.classList.remove('drag-over');
+    });
+
+    draggedAssociationMemberId = null;
+}
+
+async function saveAssociationMemberOrder() {
+    const client = await window.waitForSupabaseClient();
+    const { data } = await client.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Not authenticated');
+
+    for (const member of associationMembers) {
+        await apiRequest(`/api/admin/association-members?id=${encodeURIComponent(member.id)}`, {
+            method: 'PUT',
+            token,
+            body: {
+                name: member.name,
+                role: member.role,
+                image_url: member.image_url || null,
+                display_order: member.display_order
+            }
+        });
+    }
 }
 
 function setAssociationPanelOpen(isOpen) {
@@ -1475,12 +1684,14 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     closePdfOptionsPanel();
     closeWordOptionsPanel();
     pdfColumnSelectionState = {};
+    pdfColumnOrder = [];
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = eventTitle || '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
     wordColumnSelectionState = {};
+    wordColumnOrder = [];
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = eventTitle || '';
 
