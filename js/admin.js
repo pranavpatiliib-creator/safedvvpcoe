@@ -91,9 +91,9 @@ let editingQuestionId = null;
 let associationMembers = [];
 let editingAssociationMemberImageUrl = '';
 let isAssociationPanelOpen = false;
-let pdfQuestionSelectionState = {};
+let pdfColumnSelectionState = {};
 let pdfBlankColumns = [];
-let wordQuestionSelectionState = {};
+let wordColumnSelectionState = {};
 let wordBlankColumns = [];
 
 async function apiRequest(path, { method = 'GET', token, body } = {}) {
@@ -124,7 +124,7 @@ async function apiRequest(path, { method = 'GET', token, body } = {}) {
 }
 
 function resetPdfOptions() {
-    pdfQuestionSelectionState = {};
+    pdfColumnSelectionState = {};
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
@@ -134,7 +134,7 @@ function resetPdfOptions() {
 }
 
 function resetWordOptions() {
-    wordQuestionSelectionState = {};
+    wordColumnSelectionState = {};
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = '';
     renderWordOptionsPanel();
@@ -232,29 +232,77 @@ function removeWordBlankColumn(index) {
     renderWordOptionsPanel();
 }
 
+function getExportQuestionColumns(question) {
+    const questionId = String(question.id);
+    const questionLabel = capitalizeFirstLetter(question.question || `Question ${questionId}`);
+
+    if (question.type === 'group_members') {
+        return [
+            {
+                kind: 'question',
+                questionId,
+                questionPart: 'member_names',
+                stateKey: `${questionId}:member_names`,
+                label: questionLabel
+            },
+            {
+                kind: 'question',
+                questionId,
+                questionPart: 'group_size',
+                stateKey: `${questionId}:group_size`,
+                label: `No. of ${questionLabel}`
+            }
+        ];
+    }
+
+    return [{
+        kind: 'question',
+        questionId,
+        questionPart: null,
+        stateKey: questionId,
+        label: questionLabel
+    }];
+}
+
+function renderExportColumnItem(column, state, checkboxClass, inputClass) {
+    const stateKey = column.stateKey;
+    const current = state[stateKey];
+    const checked = current ? !!current.checked : true;
+    const label = current?.label || column.label;
+
+    if (!current) {
+        state[stateKey] = {
+            checked: true,
+            label: column.label
+        };
+    }
+
+    return `
+        <label style="display:grid; grid-template-columns:auto 1fr; gap:10px 12px; align-items:start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+            <input type="checkbox" class="${checkboxClass}" data-column-key="${escapeHtml(stateKey)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
+            <div style="display:grid; gap:6px; width:100%;">
+                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(column.label)}</span>
+                <input type="text" class="${inputClass} search-box" data-column-key="${escapeHtml(stateKey)}" value="${escapeHtml(label)}" placeholder="Column name" style="width:100%; min-width:0; color:#1f2937; background:#fff;">
+            </div>
+        </label>
+    `;
+}
+
 function renderPdfOptionsPanel() {
     if (!pdfColumnChecklist || !pdfBlankColumnsList) return;
 
-    const questionItems = allQuestions.map(question => {
-        const questionId = String(question.id);
-        const hasState = Object.prototype.hasOwnProperty.call(pdfQuestionSelectionState, questionId);
-        const checked = hasState ? !!pdfQuestionSelectionState[questionId] : true;
-        if (!hasState) {
-            pdfQuestionSelectionState[questionId] = true;
-        }
-
-        return `
-            <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
-                <input type="checkbox" class="pdf-question-checkbox" data-question-id="${escapeHtml(questionId)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
-                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(capitalizeFirstLetter(question.question))}</span>
-            </label>
-        `;
-    }).join('');
+    const questionItems = allQuestions
+        .flatMap((question) => getExportQuestionColumns(question))
+        .map((column) => renderExportColumnItem(column, pdfColumnSelectionState, 'pdf-column-checkbox', 'pdf-column-label-input'))
+        .join('');
 
     pdfColumnChecklist.innerHTML = `
         <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #d7def3; border-radius:8px; background:#f8faff;">
             <input type="checkbox" checked disabled style="margin-top:3px;">
-            <span style="font-size:13px; color:#1f2937; line-height:1.4;">Sr No</span>
+            <div style="display:grid; gap:6px; width:100%;">
+                <span style="font-size:13px; color:#1f2937; line-height:1.4;">Sr No</span>
+                <input type="text" class="search-box" value="Sr No" disabled style="width:100%; min-width:0; color:#1f2937; background:#f8faff;">
+            </div>
         </label>
         ${questionItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No questions available for this event.</div>'}
     `;
@@ -272,26 +320,18 @@ function renderPdfOptionsPanel() {
 function renderWordOptionsPanel() {
     if (!wordColumnChecklist || !wordBlankColumnsList) return;
 
-    const questionItems = allQuestions.map(question => {
-        const questionId = String(question.id);
-        const hasState = Object.prototype.hasOwnProperty.call(wordQuestionSelectionState, questionId);
-        const checked = hasState ? !!wordQuestionSelectionState[questionId] : true;
-        if (!hasState) {
-            wordQuestionSelectionState[questionId] = true;
-        }
-
-        return `
-            <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
-                <input type="checkbox" class="word-question-checkbox" data-question-id="${escapeHtml(questionId)}" ${checked ? 'checked' : ''} style="margin-top:3px;">
-                <span style="font-size:13px; color:#1f2937; line-height:1.4;">${escapeHtml(capitalizeFirstLetter(question.question))}</span>
-            </label>
-        `;
-    }).join('');
+    const questionItems = allQuestions
+        .flatMap((question) => getExportQuestionColumns(question))
+        .map((column) => renderExportColumnItem(column, wordColumnSelectionState, 'word-column-checkbox', 'word-column-label-input'))
+        .join('');
 
     wordColumnChecklist.innerHTML = `
         <label style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #d7def3; border-radius:8px; background:#f8faff;">
             <input type="checkbox" checked disabled style="margin-top:3px;">
-            <span style="font-size:13px; color:#1f2937; line-height:1.4;">Sr No</span>
+            <div style="display:grid; gap:6px; width:100%;">
+                <span style="font-size:13px; color:#1f2937; line-height:1.4;">Sr No</span>
+                <input type="text" class="search-box" value="Sr No" disabled style="width:100%; min-width:0; color:#1f2937; background:#f8faff;">
+            </div>
         </label>
         ${questionItems || '<div style="padding:8px 0; color:#667085; font-size:13px;">No questions available for this event.</div>'}
     `;
@@ -308,43 +348,41 @@ function renderWordOptionsPanel() {
 
 function collectPdfColumns() {
     const columns = [{ kind: 'serial', label: 'Sr No' }];
-    const selectedIds = new Set();
+    const selectedKeys = new Set();
 
-    document.querySelectorAll('.pdf-question-checkbox').forEach((checkbox) => {
-        const questionId = String(checkbox.dataset.questionId || '');
-        if (!questionId) return;
-        pdfQuestionSelectionState[questionId] = checkbox.checked;
-        if (checkbox.checked) selectedIds.add(questionId);
+    document.querySelectorAll('.pdf-column-checkbox').forEach((checkbox) => {
+        const columnKey = String(checkbox.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = pdfColumnSelectionState[columnKey] || {};
+        pdfColumnSelectionState[columnKey] = {
+            ...current,
+            checked: checkbox.checked
+        };
+        if (checkbox.checked) selectedKeys.add(columnKey);
     });
 
-    allQuestions.forEach((question) => {
-        const questionId = String(question.id);
-        if (selectedIds.has(questionId)) {
-            const questionLabel = capitalizeFirstLetter(question.question || `Question ${questionId}`);
+    document.querySelectorAll('.pdf-column-label-input').forEach((input) => {
+        const columnKey = String(input.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = pdfColumnSelectionState[columnKey] || {};
+        pdfColumnSelectionState[columnKey] = {
+            ...current,
+            label: input.value.trim() || current.label || ''
+        };
+    });
 
-            if (question.type === 'group_members') {
-                columns.push({
-                    kind: 'question',
-                    questionPart: 'member_names',
-                    label: questionLabel,
-                    questionId
-                });
-                columns.push({
-                    kind: 'question',
-                    questionPart: 'group_size',
-                    label: `No. of ${questionLabel}`,
-                    questionId
-                });
-                return;
-            }
-
+    allQuestions
+        .flatMap((question) => getExportQuestionColumns(question))
+        .forEach((column) => {
+            if (!selectedKeys.has(column.stateKey)) return;
+            const current = pdfColumnSelectionState[column.stateKey] || {};
             columns.push({
                 kind: 'question',
-                label: questionLabel,
-                questionId
+                questionId: column.questionId,
+                questionPart: column.questionPart,
+                label: current.label || column.label
             });
-        }
-    });
+        });
 
     pdfBlankColumns.forEach((name) => {
         columns.push({
@@ -358,43 +396,41 @@ function collectPdfColumns() {
 
 function collectWordColumns() {
     const columns = [{ kind: 'serial', label: 'Sr No' }];
-    const selectedIds = new Set();
+    const selectedKeys = new Set();
 
-    document.querySelectorAll('.word-question-checkbox').forEach((checkbox) => {
-        const questionId = String(checkbox.dataset.questionId || '');
-        if (!questionId) return;
-        wordQuestionSelectionState[questionId] = checkbox.checked;
-        if (checkbox.checked) selectedIds.add(questionId);
+    document.querySelectorAll('.word-column-checkbox').forEach((checkbox) => {
+        const columnKey = String(checkbox.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = wordColumnSelectionState[columnKey] || {};
+        wordColumnSelectionState[columnKey] = {
+            ...current,
+            checked: checkbox.checked
+        };
+        if (checkbox.checked) selectedKeys.add(columnKey);
     });
 
-    allQuestions.forEach((question) => {
-        const questionId = String(question.id);
-        if (selectedIds.has(questionId)) {
-            const questionLabel = capitalizeFirstLetter(question.question || `Question ${questionId}`);
+    document.querySelectorAll('.word-column-label-input').forEach((input) => {
+        const columnKey = String(input.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = wordColumnSelectionState[columnKey] || {};
+        wordColumnSelectionState[columnKey] = {
+            ...current,
+            label: input.value.trim() || current.label || ''
+        };
+    });
 
-            if (question.type === 'group_members') {
-                columns.push({
-                    kind: 'question',
-                    questionPart: 'member_names',
-                    label: questionLabel,
-                    questionId
-                });
-                columns.push({
-                    kind: 'question',
-                    questionPart: 'group_size',
-                    label: `No. of ${questionLabel}`,
-                    questionId
-                });
-                return;
-            }
-
+    allQuestions
+        .flatMap((question) => getExportQuestionColumns(question))
+        .forEach((column) => {
+            if (!selectedKeys.has(column.stateKey)) return;
+            const current = wordColumnSelectionState[column.stateKey] || {};
             columns.push({
                 kind: 'question',
-                label: questionLabel,
-                questionId
+                questionId: column.questionId,
+                questionPart: column.questionPart,
+                label: current.label || column.label
             });
-        }
-    });
+        });
 
     wordBlankColumns.forEach((name) => {
         columns.push({
@@ -1438,13 +1474,13 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     selectedEventTitle.textContent = eventTitle;
     closePdfOptionsPanel();
     closeWordOptionsPanel();
-    pdfQuestionSelectionState = {};
+    pdfColumnSelectionState = {};
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = eventTitle || '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
-    wordQuestionSelectionState = {};
+    wordColumnSelectionState = {};
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = eventTitle || '';
 
@@ -1602,10 +1638,25 @@ if (pdfColumnChecklist && !pdfColumnChecklist.__bound) {
     pdfColumnChecklist.__bound = true;
     pdfColumnChecklist.addEventListener('change', (e) => {
         const input = e.target;
-        if (!input || !input.classList || !input.classList.contains('pdf-question-checkbox')) return;
-        const questionId = String(input.dataset.questionId || '');
-        if (!questionId) return;
-        pdfQuestionSelectionState[questionId] = input.checked;
+        if (!input || !input.classList || !input.classList.contains('pdf-column-checkbox')) return;
+        const columnKey = String(input.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = pdfColumnSelectionState[columnKey] || {};
+        pdfColumnSelectionState[columnKey] = {
+            ...current,
+            checked: input.checked
+        };
+    });
+    pdfColumnChecklist.addEventListener('input', (e) => {
+        const input = e.target;
+        if (!input || !input.classList || !input.classList.contains('pdf-column-label-input')) return;
+        const columnKey = String(input.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = pdfColumnSelectionState[columnKey] || {};
+        pdfColumnSelectionState[columnKey] = {
+            ...current,
+            label: input.value
+        };
     });
 }
 
@@ -1624,10 +1675,25 @@ if (wordColumnChecklist && !wordColumnChecklist.__bound) {
     wordColumnChecklist.__bound = true;
     wordColumnChecklist.addEventListener('change', (e) => {
         const input = e.target;
-        if (!input || !input.classList || !input.classList.contains('word-question-checkbox')) return;
-        const questionId = String(input.dataset.questionId || '');
-        if (!questionId) return;
-        wordQuestionSelectionState[questionId] = input.checked;
+        if (!input || !input.classList || !input.classList.contains('word-column-checkbox')) return;
+        const columnKey = String(input.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = wordColumnSelectionState[columnKey] || {};
+        wordColumnSelectionState[columnKey] = {
+            ...current,
+            checked: input.checked
+        };
+    });
+    wordColumnChecklist.addEventListener('input', (e) => {
+        const input = e.target;
+        if (!input || !input.classList || !input.classList.contains('word-column-label-input')) return;
+        const columnKey = String(input.dataset.columnKey || '');
+        if (!columnKey) return;
+        const current = wordColumnSelectionState[columnKey] || {};
+        wordColumnSelectionState[columnKey] = {
+            ...current,
+            label: input.value
+        };
     });
 }
 
