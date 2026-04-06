@@ -33,6 +33,7 @@ const pdfBlankColumnsList = document.getElementById('pdfBlankColumnsList');
 const pdfGenerateBtn = document.getElementById('pdfGenerateBtn');
 const pdfCloseBtn = document.getElementById('pdfCloseBtn');
 const pdfHeadingInput = document.getElementById('pdfHeadingInput');
+const pdfRowLimitInput = document.getElementById('pdfRowLimitInput');
 const wordOptionsPanel = document.getElementById('wordOptionsPanel');
 const wordColumnChecklist = document.getElementById('wordColumnChecklist');
 const wordBlankColumnInput = document.getElementById('wordBlankColumnInput');
@@ -41,6 +42,7 @@ const wordBlankColumnsList = document.getElementById('wordBlankColumnsList');
 const wordGenerateBtn = document.getElementById('wordGenerateBtn');
 const wordCloseBtn = document.getElementById('wordCloseBtn');
 const wordHeadingInput = document.getElementById('wordHeadingInput');
+const wordRowLimitInput = document.getElementById('wordRowLimitInput');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -131,6 +133,7 @@ function resetPdfOptions() {
     pdfColumnOrder = [];
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = '';
+    if (pdfRowLimitInput) pdfRowLimitInput.value = '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
@@ -142,7 +145,16 @@ function resetWordOptions() {
     wordColumnOrder = [];
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = '';
+    if (wordRowLimitInput) wordRowLimitInput.value = '';
     renderWordOptionsPanel();
+}
+
+function getPositiveRowLimit(input) {
+    if (!input) return null;
+    const value = String(input.value || '').trim();
+    if (!value) return null;
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 function openPdfOptionsPanel() {
@@ -1687,6 +1699,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     pdfColumnOrder = [];
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = eventTitle || '';
+    if (pdfRowLimitInput) pdfRowLimitInput.value = '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
@@ -1694,6 +1707,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     wordColumnOrder = [];
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = eventTitle || '';
+    if (wordRowLimitInput) wordRowLimitInput.value = '';
 
     try {
         const client = await window.waitForSupabaseClient();
@@ -1998,6 +2012,7 @@ function initializeExportHandlers() {
                     ? pdfHeadingInput.value.trim()
                     : (selectedEventData?.title || selectedEventTitle.textContent || '');
                 const pdfOrientation = getPdfOrientation();
+                const pdfRowLimit = getPositiveRowLimit(pdfRowLimitInput);
                 await ExportUtils.exportToPDF(
                     selectedEventData,
                     allQuestions,
@@ -2006,6 +2021,7 @@ function initializeExportHandlers() {
                     {
                         columns,
                         heading: pdfHeading,
+                        rowLimit: pdfRowLimit,
                         orientation: pdfOrientation,
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
@@ -2087,6 +2103,7 @@ function initializeExportHandlers() {
                 const wordHeading = wordHeadingInput && wordHeadingInput.value.trim()
                     ? wordHeadingInput.value.trim()
                     : (selectedEventData?.title || selectedEventTitle.textContent || '');
+                const wordRowLimit = getPositiveRowLimit(wordRowLimitInput);
                 await ExportUtils.exportToWord(
                     selectedEventData,
                     allQuestions,
@@ -2095,6 +2112,7 @@ function initializeExportHandlers() {
                     {
                         columns,
                         heading: wordHeading,
+                        rowLimit: wordRowLimit,
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );

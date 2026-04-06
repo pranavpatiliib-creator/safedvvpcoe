@@ -266,6 +266,15 @@
         return formatAnswerValue(value);
     }
 
+    function applyRowLimit(rows, rowLimit) {
+        const limit = Number.parseInt(rowLimit, 10);
+        if (!Number.isFinite(limit) || limit <= 0) {
+            return rows || [];
+        }
+
+        return (rows || []).slice(0, limit);
+    }
+
     function buildPdfTableData(eventData, questions, responses, columns) {
         const normalizedColumns = normalizePdfColumns(columns, questions);
         const rows = (responses || []).map((response, index) => {
@@ -386,7 +395,8 @@
         const jsPDF = window.jspdf?.jsPDF;
         if (!jsPDF) throw new Error('jsPDF library not loaded');
 
-        const { columns, rows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
+        const { columns, rows: allRows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
+        const rows = applyRowLimit(allRows, options.rowLimit);
         const headingText = capitalizeFirstLetter(options.heading || title);
         const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait';
         const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
@@ -522,7 +532,8 @@
     }
 
     async function exportToWord(eventData, questions, responses, filename, options = {}) {
-        const { columns, rows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
+        const { columns, rows: allRows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
+        const rows = applyRowLimit(allRows, options.rowLimit);
         const headers = columns.map((col, index) => getReadableColumnLabel(col, index));
         const headingText = capitalizeFirstLetter(options.heading || title);
         const letterheadCandidates = options.letterheadUrls && options.letterheadUrls.length
