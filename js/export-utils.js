@@ -275,6 +275,13 @@
         return (rows || []).slice(0, limit);
     }
 
+    function normalizeHeadingLines(heading) {
+        return String(heading ?? '')
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(Boolean);
+    }
+
     function buildPdfTableData(eventData, questions, responses, columns) {
         const normalizedColumns = normalizePdfColumns(columns, questions);
         const rows = (responses || []).map((response, index) => {
@@ -398,6 +405,7 @@
         const { columns, rows: allRows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
         const rows = applyRowLimit(allRows, options.rowLimit);
         const headingText = capitalizeFirstLetter(options.heading || title);
+        const headingLines = normalizeHeadingLines(headingText);
         const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait';
         const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -442,8 +450,11 @@
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(15);
             doc.setTextColor(17, 24, 39);
-            doc.text(headingText, pageWidth / 2, y + 6, { align: 'center' });
-            y += 14;
+            const printableHeadingLines = headingLines.length > 0 ? headingLines : [capitalizeFirstLetter(title)];
+            printableHeadingLines.forEach((line, index) => {
+                doc.text(line, pageWidth / 2, y + 6 + (index * 6), { align: 'center' });
+            });
+            y += 8 + (printableHeadingLines.length * 6);
 
             doc.setDrawColor(148, 163, 184);
             doc.setLineWidth(0.4);
@@ -536,6 +547,9 @@
         const rows = applyRowLimit(allRows, options.rowLimit);
         const headers = columns.map((col, index) => getReadableColumnLabel(col, index));
         const headingText = capitalizeFirstLetter(options.heading || title);
+        const headingHtml = normalizeHeadingLines(headingText)
+            .map((line) => `<div>${escapeHtml(line)}</div>`)
+            .join('');
         const letterheadCandidates = options.letterheadUrls && options.letterheadUrls.length
             ? options.letterheadUrls
             : ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg'];
@@ -559,6 +573,7 @@
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; color: #111; }
         h1 { font-size: 20px; margin-bottom: 16px; }
+        .doc-heading { text-align: center; margin-bottom: 16px; line-height: 1.4; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; }
         th { background: #ffffff; color: #111827; text-align: left; font-weight: 700; }
@@ -566,7 +581,7 @@
 </head>
 <body>
     ${letterheadHtml}
-    <h1 style="text-align:center;">${escapeHtml(headingText)}</h1>
+    <h1 class="doc-heading">${headingHtml || `<div>${escapeHtml(capitalizeFirstLetter(title))}</div>`}</h1>
     <table>
         <thead>
             <tr>${headerRow}</tr>
