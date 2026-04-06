@@ -320,9 +320,27 @@ function collectPdfColumns() {
     allQuestions.forEach((question) => {
         const questionId = String(question.id);
         if (selectedIds.has(questionId)) {
+            const questionLabel = capitalizeFirstLetter(question.question || `Question ${questionId}`);
+
+            if (question.type === 'group_members') {
+                columns.push({
+                    kind: 'question',
+                    questionPart: 'member_names',
+                    label: questionLabel,
+                    questionId
+                });
+                columns.push({
+                    kind: 'question',
+                    questionPart: 'group_size',
+                    label: `No. of ${questionLabel}`,
+                    questionId
+                });
+                return;
+            }
+
             columns.push({
                 kind: 'question',
-                label: capitalizeFirstLetter(question.question || `Question ${questionId}`),
+                label: questionLabel,
                 questionId
             });
         }
@@ -352,9 +370,27 @@ function collectWordColumns() {
     allQuestions.forEach((question) => {
         const questionId = String(question.id);
         if (selectedIds.has(questionId)) {
+            const questionLabel = capitalizeFirstLetter(question.question || `Question ${questionId}`);
+
+            if (question.type === 'group_members') {
+                columns.push({
+                    kind: 'question',
+                    questionPart: 'member_names',
+                    label: questionLabel,
+                    questionId
+                });
+                columns.push({
+                    kind: 'question',
+                    questionPart: 'group_size',
+                    label: `No. of ${questionLabel}`,
+                    questionId
+                });
+                return;
+            }
+
             columns.push({
                 kind: 'question',
-                label: capitalizeFirstLetter(question.question || `Question ${questionId}`),
+                label: questionLabel,
                 questionId
             });
         }

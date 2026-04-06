@@ -200,6 +200,7 @@
                     return {
                         kind: 'question',
                         questionId,
+                        questionPart: col.questionPart || null,
                         label: resolveColumnLabel(col, question, `Question ${questionId || index + 1}`)
                     };
                 }
@@ -213,12 +214,56 @@
 
         return [
             { kind: 'serial', label: 'Sr No' },
-            ...(questions || []).map(q => ({
-                kind: 'question',
-                questionId: String(q.id),
-                label: resolveColumnLabel(null, q, `Question ${q.id}`)
-            }))
+            ...(questions || []).flatMap(q => {
+                const questionId = String(q.id);
+                const questionLabel = resolveColumnLabel(null, q, `Question ${q.id}`);
+
+                if (q.type === 'group_members') {
+                    return [
+                        {
+                            kind: 'question',
+                            questionId,
+                            questionPart: 'member_names',
+                            label: questionLabel
+                        },
+                        {
+                            kind: 'question',
+                            questionId,
+                            questionPart: 'group_size',
+                            label: `No. of ${questionLabel}`
+                        }
+                    ];
+                }
+
+                return [{
+                    kind: 'question',
+                    questionId,
+                    questionPart: null,
+                    label: questionLabel
+                }];
+            })
         ];
+    }
+
+    function getQuestionCellValue(value, questionPart) {
+        if (questionPart === 'group_size') {
+            if (value && typeof value === 'object' && value.group_size != null && value.group_size !== '') {
+                return String(value.group_size);
+            }
+            return '';
+        }
+
+        if (questionPart === 'member_names') {
+            if (value && typeof value === 'object' && Array.isArray(value.member_names)) {
+                return value.member_names
+                    .filter(name => name != null && String(name).trim() !== '')
+                    .map(name => String(name).trim())
+                    .join('\n');
+            }
+            return '';
+        }
+
+        return formatAnswerValue(value);
     }
 
     function buildPdfTableData(eventData, questions, responses, columns) {
@@ -235,7 +280,7 @@
                 }
 
                 const value = answers[col.questionId];
-                return formatAnswerValue(value);
+                return getQuestionCellValue(value, col.questionPart);
             });
         });
 
