@@ -1355,6 +1355,13 @@ td {
     border-bottom: 1px solid #eee;
     color: #555;
     font-size: 14px;
+    vertical-align: top;
+}
+
+.answer-cell {
+    white-space: pre-line;
+    line-height: 1.5;
+    min-width: 160px;
 }
 
 tbody tr:hover {

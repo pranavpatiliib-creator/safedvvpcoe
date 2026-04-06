@@ -1478,6 +1478,47 @@ function displayResponses(responses) {
         return;
     }
 
+    const formatAnswerForDisplay = (answer) => {
+        if (answer == null || answer === '') {
+            return { text: '', html: '' };
+        }
+
+        if (Array.isArray(answer)) {
+            const values = answer.filter((item) => item != null && item !== '').map((item) => String(item));
+            const text = values.join(', ');
+            return {
+                text,
+                html: values.map((item) => escapeHtml(item)).join('<br>')
+            };
+        }
+
+        if (typeof answer === 'object') {
+            const memberNames = Array.isArray(answer.member_names)
+                ? answer.member_names
+                    .filter((name) => name != null && String(name).trim() !== '')
+                    .map((name) => String(name).trim())
+                : [];
+
+            if (memberNames.length > 0) {
+                return {
+                    text: memberNames.join('\n'),
+                    html: memberNames.map((name) => escapeHtml(name)).join('<br>')
+                };
+            }
+
+            if (answer.group_size) {
+                const text = `Group size: ${answer.group_size}`;
+                return { text, html: escapeHtml(text) };
+            }
+
+            const text = JSON.stringify(answer);
+            return { text, html: escapeHtml(text) };
+        }
+
+        const text = String(answer);
+        return { text, html: escapeHtml(text) };
+    };
+
     const tableHTML = `
         <table>
             <thead>
@@ -1492,8 +1533,8 @@ function displayResponses(responses) {
                         <td>${index + 1}</td>
                         ${allQuestions.map(question => {
         const answer = response.answers[question.id];
-        const displayValue = Array.isArray(answer) ? answer.join(', ') : (answer || '');
-        return `<td class="answer-cell" title="${escapeHtml(displayValue)}">${escapeHtml(displayValue)}</td>`;
+        const displayValue = formatAnswerForDisplay(answer);
+        return `<td class="answer-cell" title="${escapeHtml(displayValue.text)}">${displayValue.html}</td>`;
     }).join('')}
                     </tr>
                 `).join('')}

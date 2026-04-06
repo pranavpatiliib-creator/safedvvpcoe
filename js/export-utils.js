@@ -91,6 +91,37 @@
         return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
+    function formatAnswerValue(value) {
+        if (value == null || value === '') return '';
+
+        if (Array.isArray(value)) {
+            return value
+                .filter(item => item != null && item !== '')
+                .map(item => String(item))
+                .join(', ');
+        }
+
+        if (typeof value === 'object') {
+            const memberNames = Array.isArray(value.member_names)
+                ? value.member_names
+                    .filter(name => name != null && String(name).trim() !== '')
+                    .map(name => String(name).trim())
+                : [];
+
+            if (memberNames.length > 0) {
+                return memberNames.join('\n');
+            }
+
+            if (value.group_size) {
+                return `Group size: ${value.group_size}`;
+            }
+
+            return JSON.stringify(value);
+        }
+
+        return String(value);
+    }
+
     function getReadableColumnLabel(col, index) {
         const raw = capitalizeFirstLetter(col?.label || '');
         if (raw) return raw;
@@ -204,7 +235,7 @@
                 }
 
                 const value = answers[col.questionId];
-                return Array.isArray(value) ? value.join(', ') : (value ?? '');
+                return formatAnswerValue(value);
             });
         });
 
@@ -265,7 +296,7 @@
             ];
             (questions || []).forEach(q => {
                 const value = answers[q.id];
-                row.push(Array.isArray(value) ? value.join(', ') : (value ?? ''));
+                row.push(formatAnswerValue(value));
             });
             return row;
         });
