@@ -33,7 +33,11 @@ const pdfBlankColumnsList = document.getElementById('pdfBlankColumnsList');
 const pdfGenerateBtn = document.getElementById('pdfGenerateBtn');
 const pdfCloseBtn = document.getElementById('pdfCloseBtn');
 const pdfHeadingInput = document.getElementById('pdfHeadingInput');
-const pdfRowLimitInput = document.getElementById('pdfRowLimitInput');
+const pdfRowRangeStartInput = document.getElementById('pdfRowRangeStartInput');
+const pdfRowRangeEndInput = document.getElementById('pdfRowRangeEndInput');
+const pdfRowsPerPageInput = document.getElementById('pdfRowsPerPageInput');
+const pdfFooterInput = document.getElementById('pdfFooterInput');
+const pdfPreviewPanel = document.getElementById('pdfPreviewPanel');
 const wordOptionsPanel = document.getElementById('wordOptionsPanel');
 const wordColumnChecklist = document.getElementById('wordColumnChecklist');
 const wordBlankColumnInput = document.getElementById('wordBlankColumnInput');
@@ -42,7 +46,10 @@ const wordBlankColumnsList = document.getElementById('wordBlankColumnsList');
 const wordGenerateBtn = document.getElementById('wordGenerateBtn');
 const wordCloseBtn = document.getElementById('wordCloseBtn');
 const wordHeadingInput = document.getElementById('wordHeadingInput');
-const wordRowLimitInput = document.getElementById('wordRowLimitInput');
+const wordRowRangeStartInput = document.getElementById('wordRowRangeStartInput');
+const wordRowRangeEndInput = document.getElementById('wordRowRangeEndInput');
+const wordRowsPerPageInput = document.getElementById('wordRowsPerPageInput');
+const wordFooterInput = document.getElementById('wordFooterInput');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -133,7 +140,10 @@ function resetPdfOptions() {
     pdfColumnOrder = [];
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = '';
-    if (pdfRowLimitInput) pdfRowLimitInput.value = '';
+    if (pdfRowRangeStartInput) pdfRowRangeStartInput.value = '';
+    if (pdfRowRangeEndInput) pdfRowRangeEndInput.value = '';
+    if (pdfRowsPerPageInput) pdfRowsPerPageInput.value = '';
+    if (pdfFooterInput) pdfFooterInput.value = '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
@@ -145,16 +155,35 @@ function resetWordOptions() {
     wordColumnOrder = [];
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = '';
-    if (wordRowLimitInput) wordRowLimitInput.value = '';
+    if (wordRowRangeStartInput) wordRowRangeStartInput.value = '';
+    if (wordRowRangeEndInput) wordRowRangeEndInput.value = '';
+    if (wordRowsPerPageInput) wordRowsPerPageInput.value = '';
+    if (wordFooterInput) wordFooterInput.value = '';
     renderWordOptionsPanel();
 }
 
-function getPositiveRowLimit(input) {
+function getPositiveNumber(input) {
     if (!input) return null;
     const value = String(input.value || '').trim();
     if (!value) return null;
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function getRowRangeOptions(startInput, endInput, rowsPerPageInput) {
+    const startRow = getPositiveNumber(startInput);
+    const endRow = getPositiveNumber(endInput);
+    const rowsPerPage = getPositiveNumber(rowsPerPageInput);
+
+    if (startRow && endRow && startRow > endRow) {
+        throw new Error('Start row cannot be greater than end row');
+    }
+
+    return {
+        startRow,
+        endRow,
+        rowsPerPage
+    };
 }
 
 function openPdfOptionsPanel() {
@@ -170,6 +199,7 @@ function openPdfOptionsPanel() {
             pdfHeadingInput.value = selectedEventData?.title || selectedEventTitle?.textContent || '';
         }
         renderPdfOptionsPanel();
+        renderPdfPreview();
         pdfOptionsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
@@ -218,12 +248,14 @@ function addPdfBlankColumnFromInput() {
     pdfBlankColumns.push(name);
     pdfBlankColumnInput.value = '';
     renderPdfOptionsPanel();
+    renderPdfPreview();
 }
 
 function removePdfBlankColumn(index) {
     if (index < 0 || index >= pdfBlankColumns.length) return;
     pdfBlankColumns.splice(index, 1);
     renderPdfOptionsPanel();
+    renderPdfPreview();
 }
 
 function addWordBlankColumnFromInput() {
@@ -565,6 +597,103 @@ function getPdfOrientation() {
     return checked ? checked.value : 'portrait';
 }
 
+function getPreviewRows(columns, rangeOptions) {
+    const startIndex = Math.max(0, (rangeOptions.startRow || 1) - 1);
+    const endIndex = rangeOptions.endRow ? Math.min(allResponses.length, rangeOptions.endRow) : allResponses.length;
+    const filteredResponses = allResponses.slice(startIndex, endIndex);
+    const rows = filteredResponses.map((response, index) => columns.map((column) => {
+        if (column.kind === 'serial') {
+            return String(startIndex + index + 1);
+        }
+
+        if (column.kind === 'blank') {
+            return '';
+        }
+
+        return formatExportAnswer(response?.answers?.[column.questionId], column.questionPart);
+    }));
+
+    return {
+        rows,
+        rowsPerPage: rangeOptions.rowsPerPage || rows.length || 1
+    };
+}
+
+function formatExportAnswer(answer, questionPart) {
+    if (questionPart === 'group_size') {
+        return answer && typeof answer === 'object' && answer.group_size != null ? String(answer.group_size) : '';
+    }
+
+    if (questionPart === 'member_names') {
+        return Array.isArray(answer?.member_names) ? answer.member_names.filter(Boolean).join(', ') : '';
+    }
+
+    if (answer == null || answer === '') return '';
+    if (Array.isArray(answer)) return answer.filter(Boolean).join(', ');
+
+    if (typeof answer === 'object') {
+        if (answer.url) return answer.fileName ? `${answer.fileName} (${answer.url})` : answer.url;
+        return JSON.stringify(answer);
+    }
+
+    return String(answer);
+}
+
+function renderPdfPreview() {
+    if (!pdfPreviewPanel || !selectedEventId) return;
+
+    let columns;
+    let rangeOptions;
+    try {
+        columns = collectPdfColumns();
+        rangeOptions = getRowRangeOptions(pdfRowRangeStartInput, pdfRowRangeEndInput, pdfRowsPerPageInput);
+    } catch (error) {
+        pdfPreviewPanel.innerHTML = `<div style="font-size:12px; color:#b42318;">${escapeHtml(error.message)}</div>`;
+        return;
+    }
+
+    const heading = (pdfHeadingInput?.value || selectedEventData?.title || selectedEventTitle?.textContent || '').trim() || 'PDF Preview';
+    const footer = (pdfFooterInput?.value || '').trim();
+    const orientation = getPdfOrientation();
+    const { rows, rowsPerPage } = getPreviewRows(columns, rangeOptions);
+    const pages = [];
+
+    for (let index = 0; index < rows.length || index === 0; index += rowsPerPage) {
+        pages.push(rows.slice(index, index + rowsPerPage));
+        if (rows.length === 0) break;
+    }
+
+    pdfPreviewPanel.innerHTML = pages.map((pageRows, pageIndex) => `
+        <div style="width:${orientation === 'landscape' ? '100%' : '820px'}; max-width:100%; margin:0 auto 16px; background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(15, 23, 42, 0.08); overflow:hidden;">
+            <div style="padding:16px 18px 10px; border-bottom:1px solid #e2e8f0;">
+                <div style="font-size:12px; color:#64748b; margin-bottom:8px;">${orientation === 'landscape' ? 'Landscape' : 'Portrait'} preview • Page ${pageIndex + 1}</div>
+                <div style="font-size:18px; font-weight:700; text-align:center; color:#0f172a; white-space:pre-line;">${escapeHtml(heading)}</div>
+            </div>
+            <div style="padding:14px 18px;">
+                <div style="overflow:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                        <thead>
+                            <tr>
+                                ${columns.map((column) => `<th style="border:1px solid #cbd5e1; padding:8px; text-align:left; background:#f8fafc;">${escapeHtml(column.label || '')}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(pageRows.length ? pageRows : [columns.map(() => '')]).map((row) => `
+                                <tr>
+                                    ${row.map((cell) => `<td style="border:1px solid #e2e8f0; padding:8px; vertical-align:top; white-space:pre-line;">${escapeHtml(cell || '')}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="padding:10px 18px 14px; border-top:1px solid #e2e8f0; font-size:11px; color:#475569; text-align:center; white-space:pre-line;">
+                ${escapeHtml(footer || 'No footer set')}
+            </div>
+        </div>
+    `).join('');
+}
+
 // 🔹 EVENT CREATION FUNCTIONS
 function openAddEventModal() {
     addEventModal.style.display = 'flex';
@@ -730,11 +859,14 @@ function updateQuickQuestionTypeDisplay() {
     const optionsLabel = document.querySelector('label[for="quickQuestionOptions"]');
     const optionsInput = document.getElementById('quickQuestionOptions');
 
-    if (['select', 'radio', 'checkbox', 'group_members'].includes(type)) {
+    if (['select', 'radio', 'checkbox', 'group_members', 'file'].includes(type)) {
         optionsGroup.style.display = 'block';
         if (type === 'group_members') {
             if (optionsLabel) optionsLabel.textContent = 'Maximum Members (1-10)';
             if (optionsInput) optionsInput.placeholder = 'Enter max group members, for example 4';
+        } else if (type === 'file') {
+            if (optionsLabel) optionsLabel.textContent = 'Allowed File Types';
+            if (optionsInput) optionsInput.placeholder = '.pdf, .jpg, .png';
         } else {
             if (optionsLabel) optionsLabel.textContent = 'Options (comma-separated)';
             if (optionsInput) optionsInput.placeholder = 'Option 1, Option 2, Option 3';
@@ -898,11 +1030,14 @@ function updateQuestionTypeDisplay() {
     const optionsLabel = document.querySelector('label[for="questionOptions"]');
     const optionsInput = document.getElementById('questionOptions');
 
-    if (['select', 'radio', 'checkbox', 'group_members'].includes(type)) {
+    if (['select', 'radio', 'checkbox', 'group_members', 'file'].includes(type)) {
         optionsGroup.style.display = 'block';
         if (type === 'group_members') {
             if (optionsLabel) optionsLabel.textContent = 'Maximum Members (1-10)';
             if (optionsInput) optionsInput.placeholder = 'Enter max group members, for example 4';
+        } else if (type === 'file') {
+            if (optionsLabel) optionsLabel.textContent = 'Allowed File Types';
+            if (optionsInput) optionsInput.placeholder = '.pdf, .jpg, .png';
         } else {
             if (optionsLabel) optionsLabel.textContent = 'Options (comma-separated)';
             if (optionsInput) optionsInput.placeholder = 'Option 1, Option 2, Option 3';
@@ -923,6 +1058,10 @@ function parseQuestionOptions(questionType, rawOptions) {
             throw new Error('For Group Members, enter a maximum member limit between 1 and 10');
         }
         return [String(maxMembers)];
+    }
+
+    if (questionType === 'file') {
+        return value.split(',').map(opt => opt.trim()).filter(opt => opt);
     }
 
     return value.split(',').map(opt => opt.trim()).filter(opt => opt);
@@ -950,7 +1089,7 @@ addQuestionForm.addEventListener('submit', async (e) => {
     }
 
     // Validate options for select/radio/checkbox
-    if (['select', 'radio', 'checkbox', 'group_members'].includes(questionType)) {
+    if (['select', 'radio', 'checkbox', 'group_members', 'file'].includes(questionType)) {
         if (!questionOptions) {
             alert('Please add options for this question type');
             return;
@@ -1015,7 +1154,7 @@ addQuestionForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (['select', 'radio', 'checkbox', 'group_members'].includes(questionType) && !questionOptions) {
+    if (['select', 'radio', 'checkbox', 'group_members', 'file'].includes(questionType) && !questionOptions) {
         alert('Please add options for this question type');
         return;
     }
@@ -1132,7 +1271,7 @@ function displayQuestions(questions) {
             <div class="question-details">
                 <h4>${escapeHtml(q.question)}</h4>
                 <p><span class="question-type">${q.type}</span></p>
-                ${q.options ? `<div class="question-options">Options: ${escapeHtml(q.options.join(', '))}</div>` : ''}
+                ${q.options ? `<div class="question-options">${q.type === 'file' ? 'Allowed types' : 'Options'}: ${escapeHtml(q.options.join(', '))}</div>` : ''}
                 <p style="margin-top: 8px; font-size: 12px; color: #999;">
                     ${q.required ? '✓ Required' : '○ Optional'}
                 </p>
@@ -1699,7 +1838,10 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     pdfColumnOrder = [];
     pdfBlankColumns = [];
     if (pdfHeadingInput) pdfHeadingInput.value = eventTitle || '';
-    if (pdfRowLimitInput) pdfRowLimitInput.value = '';
+    if (pdfRowRangeStartInput) pdfRowRangeStartInput.value = '';
+    if (pdfRowRangeEndInput) pdfRowRangeEndInput.value = '';
+    if (pdfRowsPerPageInput) pdfRowsPerPageInput.value = '';
+    if (pdfFooterInput) pdfFooterInput.value = '';
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
@@ -1707,7 +1849,10 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     wordColumnOrder = [];
     wordBlankColumns = [];
     if (wordHeadingInput) wordHeadingInput.value = eventTitle || '';
-    if (wordRowLimitInput) wordRowLimitInput.value = '';
+    if (wordRowRangeStartInput) wordRowRangeStartInput.value = '';
+    if (wordRowRangeEndInput) wordRowRangeEndInput.value = '';
+    if (wordRowsPerPageInput) wordRowsPerPageInput.value = '';
+    if (wordFooterInput) wordFooterInput.value = '';
 
     try {
         const client = await window.waitForSupabaseClient();
@@ -1731,6 +1876,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         displayQuestions(allQuestions);
         renderPdfOptionsPanel();
         renderWordOptionsPanel();
+        renderPdfPreview();
 
         // Fetch responses via admin API (responses table is not public-readable)
         try {
@@ -1747,6 +1893,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
 
         // Display responses even if empty or unavailable.
         displayResponses(allResponses);
+        renderPdfPreview();
 
         // Update response count
         responseCount.textContent = `${allResponses.length} response${allResponses.length !== 1 ? 's' : ''}`;
@@ -1760,6 +1907,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         allQuestions = [];
         renderPdfOptionsPanel();
         renderWordOptionsPanel();
+        renderPdfPreview();
         displayQuestions([]);
         responsesTable.innerHTML = '<div class="error">Failed to load responses</div>';
         if (addQuestionBtn) {
@@ -1790,6 +1938,15 @@ function displayResponses(responses) {
         }
 
         if (typeof answer === 'object') {
+            if (answer.url) {
+                const text = answer.fileName ? `${answer.fileName} (${answer.url})` : String(answer.url);
+                const label = answer.fileName ? escapeHtml(answer.fileName) : 'View file';
+                return {
+                    text,
+                    html: `<a href="${escapeHtml(answer.url)}" target="_blank" rel="noopener noreferrer">${label}</a>`
+                };
+            }
+
             const memberNames = Array.isArray(answer.member_names)
                 ? answer.member_names
                     .filter((name) => name != null && String(name).trim() !== '')
@@ -1848,6 +2005,7 @@ filterInput.addEventListener('input', (e) => {
 
     if (!searchTerm) {
         displayResponses(allResponses);
+        renderPdfPreview();
         return;
     }
 
@@ -1857,6 +2015,7 @@ filterInput.addEventListener('input', (e) => {
     });
 
     displayResponses(filtered);
+    renderPdfPreview();
 });
 
 if (pdfColumnChecklist && !pdfColumnChecklist.__bound) {
@@ -1871,6 +2030,7 @@ if (pdfColumnChecklist && !pdfColumnChecklist.__bound) {
             ...current,
             checked: input.checked
         };
+        renderPdfPreview();
     });
     pdfColumnChecklist.addEventListener('input', (e) => {
         const input = e.target;
@@ -1882,6 +2042,7 @@ if (pdfColumnChecklist && !pdfColumnChecklist.__bound) {
             ...current,
             label: input.value
         };
+        renderPdfPreview();
     });
 }
 
@@ -1895,6 +2056,18 @@ if (pdfBlankColumnsList && !pdfBlankColumnsList.__bound) {
         removePdfBlankColumn(index);
     });
 }
+
+[pdfHeadingInput, pdfRowRangeStartInput, pdfRowRangeEndInput, pdfRowsPerPageInput, pdfFooterInput].forEach((input) => {
+    if (!input || input.__bound) return;
+    input.__bound = true;
+    input.addEventListener('input', renderPdfPreview);
+});
+
+document.querySelectorAll('input[name="pdfOrientation"]').forEach((radio) => {
+    if (radio.__bound) return;
+    radio.__bound = true;
+    radio.addEventListener('change', renderPdfPreview);
+});
 
 if (wordColumnChecklist && !wordColumnChecklist.__bound) {
     wordColumnChecklist.__bound = true;
@@ -2012,7 +2185,7 @@ function initializeExportHandlers() {
                     ? pdfHeadingInput.value.trim()
                     : (selectedEventData?.title || selectedEventTitle.textContent || '');
                 const pdfOrientation = getPdfOrientation();
-                const pdfRowLimit = getPositiveRowLimit(pdfRowLimitInput);
+                const pdfRangeOptions = getRowRangeOptions(pdfRowRangeStartInput, pdfRowRangeEndInput, pdfRowsPerPageInput);
                 await ExportUtils.exportToPDF(
                     selectedEventData,
                     allQuestions,
@@ -2021,8 +2194,11 @@ function initializeExportHandlers() {
                     {
                         columns,
                         heading: pdfHeading,
-                        rowLimit: pdfRowLimit,
+                        startRow: pdfRangeOptions.startRow,
+                        endRow: pdfRangeOptions.endRow,
+                        rowsPerPage: pdfRangeOptions.rowsPerPage,
                         orientation: pdfOrientation,
+                        footer: pdfFooterInput?.value?.trim() || '',
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );
@@ -2103,7 +2279,7 @@ function initializeExportHandlers() {
                 const wordHeading = wordHeadingInput && wordHeadingInput.value.trim()
                     ? wordHeadingInput.value.trim()
                     : (selectedEventData?.title || selectedEventTitle.textContent || '');
-                const wordRowLimit = getPositiveRowLimit(wordRowLimitInput);
+                const wordRangeOptions = getRowRangeOptions(wordRowRangeStartInput, wordRowRangeEndInput, wordRowsPerPageInput);
                 await ExportUtils.exportToWord(
                     selectedEventData,
                     allQuestions,
@@ -2112,7 +2288,10 @@ function initializeExportHandlers() {
                     {
                         columns,
                         heading: wordHeading,
-                        rowLimit: wordRowLimit,
+                        startRow: wordRangeOptions.startRow,
+                        endRow: wordRangeOptions.endRow,
+                        rowsPerPage: wordRangeOptions.rowsPerPage,
+                        footer: wordFooterInput?.value?.trim() || '',
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );
@@ -2215,7 +2394,7 @@ function initializeQuickQuestionForm() {
             }
 
             // Validate options for select/radio/checkbox
-            if (['select', 'radio', 'checkbox', 'group_members'].includes(questionType)) {
+            if (['select', 'radio', 'checkbox', 'group_members', 'file'].includes(questionType)) {
                 if (!questionOptions) {
                     alert('❌ Please add options for this question type');
                     return;

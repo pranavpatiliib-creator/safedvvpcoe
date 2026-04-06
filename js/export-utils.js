@@ -102,6 +102,10 @@
         }
 
         if (typeof value === 'object') {
+            if (value.url) {
+                return value.fileName ? `${value.fileName} (${value.url})` : String(value.url);
+            }
+
             const memberNames = Array.isArray(value.member_names)
                 ? value.member_names
                     .filter(name => name != null && String(name).trim() !== '')
@@ -266,13 +270,13 @@
         return formatAnswerValue(value);
     }
 
-    function applyRowLimit(rows, rowLimit) {
-        const limit = Number.parseInt(rowLimit, 10);
-        if (!Number.isFinite(limit) || limit <= 0) {
-            return rows || [];
-        }
-
-        return (rows || []).slice(0, limit);
+    function applyRowSelection(rows, options = {}) {
+        const allRows = rows || [];
+        const startValue = Number.parseInt(options.startRow, 10);
+        const endValue = Number.parseInt(options.endRow, 10);
+        const startIndex = Number.isFinite(startValue) && startValue > 0 ? startValue - 1 : 0;
+        const endIndex = Number.isFinite(endValue) && endValue > 0 ? endValue : allRows.length;
+        return allRows.slice(startIndex, Math.max(startIndex, endIndex));
     }
 
     function normalizeHeadingLines(heading) {
@@ -403,10 +407,11 @@
         if (!jsPDF) throw new Error('jsPDF library not loaded');
 
         const { columns, rows: allRows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
-        const rows = applyRowLimit(allRows, options.rowLimit);
+        const rows = applyRowSelection(allRows, options);
         const headingText = capitalizeFirstLetter(options.heading || title);
         const headingLines = normalizeHeadingLines(headingText);
         const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait';
+        const footerLines = normalizeHeadingLines(options.footer || '');
         const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -508,27 +513,47 @@
             return rowHeight;
         };
 
+        const drawPageFooter = () => {
+            if (footerLines.length === 0) return;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(71, 85, 105);
+            footerLines.forEach((line, index) => {
+                doc.text(line, pageWidth / 2, pageHeight - margin + (index * 3.8) - 2, { align: 'center' });
+            });
+        };
+
+        const rowsPerPage = Number.parseInt(options.rowsPerPage, 10);
         let y = drawPageHeader();
         y += drawHeaderRow(y);
+        let rowsOnPage = 0;
 
         rows.forEach((row, rowIndex) => {
             const wrappedCells = row.map((cell, index) => wrapText(cell, columnWidths[index]));
             const rowHeight = Math.max(1, ...wrappedCells.map(lines => lines.length || 1)) * lineHeight + (rowPaddingY * 2);
+            const reachedManualPageSize = Number.isFinite(rowsPerPage) && rowsPerPage > 0 && rowsOnPage >= rowsPerPage;
 
-            if (y + rowHeight > pageHeight - margin) {
+            if (y + rowHeight > pageHeight - margin || reachedManualPageSize) {
+                drawPageFooter();
                 doc.addPage();
                 y = drawPageHeader();
                 y += drawHeaderRow(y);
+                rowsOnPage = 0;
             }
 
             y += drawBodyRow(y, row);
+            rowsOnPage += 1;
 
             if (rowIndex < rows.length - 1 && y > pageHeight - margin - 2) {
+                drawPageFooter();
                 doc.addPage();
                 y = drawPageHeader();
                 y += drawHeaderRow(y);
+                rowsOnPage = 0;
             }
         });
+
+        drawPageFooter();
 
         const blob = doc.output('blob');
         const url = URL.createObjectURL(blob);
@@ -544,27 +569,55 @@
 
     async function exportToWord(eventData, questions, responses, filename, options = {}) {
         const { columns, rows: allRows, title } = buildPdfTableData(eventData, questions, responses, options.columns);
-        const rows = applyRowLimit(allRows, options.rowLimit);
+        const rows = applyRowSelection(allRows, options);
         const headers = columns.map((col, index) => getReadableColumnLabel(col, index));
         const headingText = capitalizeFirstLetter(options.heading || title);
         const headingHtml = normalizeHeadingLines(headingText)
+            .map((line) => `<div>${escapeHtml(line)}</div>`)
+            .join('');
+        const footerHtml = normalizeHeadingLines(options.footer || '')
             .map((line) => `<div>${escapeHtml(line)}</div>`)
             .join('');
         const letterheadCandidates = options.letterheadUrls && options.letterheadUrls.length
             ? options.letterheadUrls
             : ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg'];
         const letterhead = await loadFirstAvailableImage(letterheadCandidates);
+        const rowsPerPage = Number.parseInt(options.rowsPerPage, 10);
 
-        const tableRows = rows.map(row => `
-            <tr>
-                ${row.map(cell => `<td>${escapeHtml(String(cell ?? ''))}</td>`).join('')}
-            </tr>
-        `).join('');
+        const rowGroups = [];
+        if (Number.isFinite(rowsPerPage) && rowsPerPage > 0) {
+            for (let index = 0; index < rows.length; index += rowsPerPage) {
+                rowGroups.push(rows.slice(index, index + rowsPerPage));
+            }
+        } else {
+            rowGroups.push(rows);
+        }
 
         const headerRow = headers.map(header => `<th>${escapeHtml(String(header))}</th>`).join('');
         const letterheadHtml = letterhead
             ? `<div style="margin-bottom: 14px;"><img src="${letterhead.dataUrl}" alt="Letterhead" style="width:100%; max-height:140px; object-fit:contain;"></div>`
             : '';
+        const tablesHtml = rowGroups.map((groupRows, groupIndex) => {
+            const tableRows = groupRows.map(row => `
+                <tr>
+                    ${row.map(cell => `<td>${escapeHtml(String(cell ?? ''))}</td>`).join('')}
+                </tr>
+            `).join('');
+
+            return `
+                <div class="page-block">
+                    ${groupIndex === 0 ? '' : '<div class="page-break"></div>'}
+                    <table>
+                        <thead>
+                            <tr>${headerRow}</tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows || '<tr><td>No responses</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }).join('');
         const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -577,19 +630,15 @@
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; }
         th { background: #ffffff; color: #111827; text-align: left; font-weight: 700; }
+        .page-break { page-break-before: always; height: 0; }
+        .doc-footer { margin-top: 16px; text-align: center; color: #475569; font-size: 11px; line-height: 1.5; }
     </style>
 </head>
 <body>
     ${letterheadHtml}
     <h1 class="doc-heading">${headingHtml || `<div>${escapeHtml(capitalizeFirstLetter(title))}</div>`}</h1>
-    <table>
-        <thead>
-            <tr>${headerRow}</tr>
-        </thead>
-        <tbody>
-            ${tableRows || '<tr><td>No responses</td></tr>'}
-        </tbody>
-    </table>
+    ${tablesHtml}
+    ${footerHtml ? `<div class="doc-footer">${footerHtml}</div>` : ''}
 </body>
 </html>`;
 

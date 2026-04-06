@@ -148,6 +148,7 @@
                                 <option value="select">Dropdown</option>
                                 <option value="radio">Radio Buttons</option>
                                 <option value="checkbox">Checkboxes</option>
+                                <option value="file">File Upload</option>
                                 <option value="group_members">Group Members</option>
                             </select>
                         </div>
@@ -197,6 +198,7 @@
                                 <option value="select">Dropdown</option>
                                 <option value="radio">Radio Buttons</option>
                                 <option value="checkbox">Checkboxes</option>
+                                <option value="file">File Upload</option>
                                 <option value="group_members">Group Members</option>
                             </select>
                         </div>
@@ -325,10 +327,26 @@
                                 </div>
                             </div>
 
+                            <div style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                                <div>
+                                    <label for="pdfRowRangeStartInput" style="display:block; font-weight:600; margin-bottom:6px;">Start Row</label>
+                                    <input type="number" id="pdfRowRangeStartInput" class="search-box" min="1" step="1" placeholder="1" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="pdfRowRangeEndInput" style="display:block; font-weight:600; margin-bottom:6px;">End Row</label>
+                                    <input type="number" id="pdfRowRangeEndInput" class="search-box" min="1" step="1" placeholder="Leave blank for all" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="pdfRowsPerPageInput" style="display:block; font-weight:600; margin-bottom:6px;">Rows Per Page</label>
+                                    <input type="number" id="pdfRowsPerPageInput" class="search-box" min="1" step="1" placeholder="Auto" style="width:100%;">
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose a row range instead of total rows, and optionally force a fixed number of rows on each PDF page.</div>
+
                             <div style="margin-bottom:12px;">
-                                <label for="pdfRowLimitInput" style="display:block; font-weight:600; margin-bottom:6px;">Rows In PDF</label>
-                                <input type="number" id="pdfRowLimitInput" class="search-box" min="1" step="1" placeholder="Leave blank to include all rows" style="width:100%;">
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Set how many response rows should be included in the PDF document.</div>
+                                <label for="pdfFooterInput" style="display:block; font-weight:600; margin-bottom:6px;">PDF Footer</label>
+                                <textarea id="pdfFooterInput" class="search-box" placeholder="Add custom footer text for each PDF page" rows="2" style="width:100%; resize:vertical;"></textarea>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">This footer will appear at the bottom of every PDF page.</div>
                             </div>
 
                             <div id="pdfColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
@@ -339,6 +357,13 @@
                             </div>
 
                             <div id="pdfBlankColumnsList" style="margin-top:10px;"></div>
+
+                            <div style="margin-top:16px;">
+                                <label style="display:block; font-weight:600; margin-bottom:8px;">Live PDF Preview</label>
+                                <div id="pdfPreviewPanel" style="border:1px solid #d9e2f2; border-radius:10px; background:#f3f6fb; padding:14px; overflow:auto;">
+                                    <div style="font-size:12px; color:#667085;">Preview will appear here.</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="wordOptionsPanel" style="display:none; margin-top:12px; padding:14px; border:1px solid #d9e2f2; border-radius:10px; background:#fbfcff;">
@@ -359,10 +384,26 @@
                                 <div style="font-size:12px; color:#667085; margin-top:6px;">Leave blank to use the selected event name automatically. Press Enter to add multiple centered lines.</div>
                             </div>
 
+                            <div style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                                <div>
+                                    <label for="wordRowRangeStartInput" style="display:block; font-weight:600; margin-bottom:6px;">Start Row</label>
+                                    <input type="number" id="wordRowRangeStartInput" class="search-box" min="1" step="1" placeholder="1" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="wordRowRangeEndInput" style="display:block; font-weight:600; margin-bottom:6px;">End Row</label>
+                                    <input type="number" id="wordRowRangeEndInput" class="search-box" min="1" step="1" placeholder="Leave blank for all" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="wordRowsPerPageInput" style="display:block; font-weight:600; margin-bottom:6px;">Rows Per Page</label>
+                                    <input type="number" id="wordRowsPerPageInput" class="search-box" min="1" step="1" placeholder="Auto" style="width:100%;">
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose the response row range and optional rows-per-page grouping for the Word export.</div>
+
                             <div style="margin-bottom:12px;">
-                                <label for="wordRowLimitInput" style="display:block; font-weight:600; margin-bottom:6px;">Rows In Word</label>
-                                <input type="number" id="wordRowLimitInput" class="search-box" min="1" step="1" placeholder="Leave blank to include all rows" style="width:100%;">
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Set how many response rows should be included in the Word document.</div>
+                                <label for="wordFooterInput" style="display:block; font-weight:600; margin-bottom:6px;">Word Footer</label>
+                                <textarea id="wordFooterInput" class="search-box" placeholder="Add custom footer text for the Word export" rows="2" style="width:100%; resize:vertical;"></textarea>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">This footer will be shown below the exported table.</div>
                             </div>
 
                             <div id="wordColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>

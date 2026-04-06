@@ -175,6 +175,14 @@ function createFormField(question, index) {
             });
             fieldHTML += '</div>';
             break;
+        case 'file':
+            fieldHTML += `
+                <input type="file" id="q${index}" name="q${index}" ${isRequired ? 'required' : ''} ${Array.isArray(question.options) && question.options.length ? `accept="${escapeHtml(question.options.join(','))}"` : ''}>
+                <small style="display:block; margin-top:6px; color:#64748b;">
+                    ${Array.isArray(question.options) && question.options.length ? `Allowed: ${escapeHtml(question.options.join(', '))}` : 'Upload a file'}
+                </small>
+            `;
+            break;
         case 'group_members':
             const maxMembers = Math.min(
                 10,
@@ -253,6 +261,8 @@ function collectFormData() {
         if (questionType === 'checkbox') {
             const checkboxes = document.querySelectorAll(`input[name="q${index}"]:checked`);
             answers[questionId] = Array.from(checkboxes).map((checkbox) => checkbox.value);
+        } else if (questionType === 'file') {
+            answers[questionId] = document.querySelector(`[name="q${index}"]`)?.files?.[0] || '';
         } else if (questionType === 'group_members') {
             const groupSize = document.querySelector(`[name="q${index}"]`)?.value || '';
             const maxMembers = Number.parseInt(groupSize, 10) || 0;
@@ -276,11 +286,57 @@ function collectFormData() {
     return answers;
 }
 
+async function uploadResponseFile(file) {
+    const dataBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            const commaIndex = result.indexOf(',');
+            resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+    });
+
+    const response = await fetch('/api/public-upload-response-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || 'application/octet-stream',
+            dataBase64
+        })
+    });
+
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+        throw new Error(data?.error || data?.message || 'Failed to upload file');
+    }
+
+    return {
+        url: data?.url || '',
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        size: file.size || 0
+    };
+}
+
 registrationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     try {
-        const answers = collectFormData();
+        const rawAnswers = collectFormData();
+        const answers = {};
+
+        for (const question of currentQuestions) {
+            const questionId = question.id;
+            const value = rawAnswers[questionId];
+            if (question.type === 'file' && value instanceof File) {
+                answers[questionId] = await uploadResponseFile(value);
+            } else {
+                answers[questionId] = value;
+            }
+        }
 
         const response = await fetch('/api/public-submit-response', {
             method: 'POST',
