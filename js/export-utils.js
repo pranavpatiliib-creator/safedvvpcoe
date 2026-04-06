@@ -286,6 +286,19 @@
             .filter(Boolean);
     }
 
+    function normalizeFooterSignatures(footer) {
+        if (!footer || typeof footer !== 'object') {
+            return { type: 'none', names: [] };
+        }
+
+        const type = ['single', 'triple'].includes(footer.type) ? footer.type : 'none';
+        const names = Array.isArray(footer.names)
+            ? footer.names.map((name) => String(name || '').trim()).filter(Boolean)
+            : [];
+
+        return { type, names };
+    }
+
     function buildPdfTableData(eventData, questions, responses, columns) {
         const normalizedColumns = normalizePdfColumns(columns, questions);
         const rows = (responses || []).map((response, index) => {
@@ -411,7 +424,7 @@
         const headingText = capitalizeFirstLetter(options.heading || title);
         const headingLines = normalizeHeadingLines(headingText);
         const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait';
-        const footerLines = normalizeHeadingLines(options.footer || '');
+        const footer = normalizeFooterSignatures(options.footer);
         const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -514,12 +527,25 @@
         };
 
         const drawPageFooter = () => {
-            if (footerLines.length === 0) return;
+            if (!footer.names.length || footer.type === 'none') return;
+
+            const footerY = pageHeight - margin - 6;
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
+            doc.setFontSize(8.5);
             doc.setTextColor(71, 85, 105);
-            footerLines.forEach((line, index) => {
-                doc.text(line, pageWidth / 2, pageHeight - margin + (index * 3.8) - 2, { align: 'center' });
+
+            if (footer.type === 'single') {
+                const lineStart = pageWidth - margin - 55;
+                const lineEnd = pageWidth - margin;
+                doc.line(lineStart, footerY, lineEnd, footerY);
+                doc.text(footer.names[0], (lineStart + lineEnd) / 2, footerY + 5, { align: 'center' });
+                return;
+            }
+
+            const slots = [margin + 28, pageWidth / 2, pageWidth - margin - 28];
+            slots.forEach((x, index) => {
+                doc.line(x - 20, footerY, x + 20, footerY);
+                doc.text(footer.names[index] || '', x, footerY + 5, { align: 'center' });
             });
         };
 
@@ -575,9 +601,7 @@
         const headingHtml = normalizeHeadingLines(headingText)
             .map((line) => `<div>${escapeHtml(line)}</div>`)
             .join('');
-        const footerHtml = normalizeHeadingLines(options.footer || '')
-            .map((line) => `<div>${escapeHtml(line)}</div>`)
-            .join('');
+        const footer = normalizeFooterSignatures(options.footer);
         const letterheadCandidates = options.letterheadUrls && options.letterheadUrls.length
             ? options.letterheadUrls
             : ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg'];
@@ -631,14 +655,29 @@
         th, td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; }
         th { background: #ffffff; color: #111827; text-align: left; font-weight: 700; }
         .page-break { page-break-before: always; height: 0; }
-        .doc-footer { margin-top: 16px; text-align: center; color: #475569; font-size: 11px; line-height: 1.5; }
+        .doc-footer { margin-top: 34px; color: #475569; font-size: 11px; line-height: 1.5; }
+        .doc-footer.single { display: flex; justify-content: flex-end; }
+        .doc-footer.triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+        .sign-box { min-height: 38px; text-align: center; }
+        .sign-line { border-top: 1px solid #475569; padding-top: 8px; display: inline-block; min-width: 140px; }
     </style>
 </head>
 <body>
     ${letterheadHtml}
     <h1 class="doc-heading">${headingHtml || `<div>${escapeHtml(capitalizeFirstLetter(title))}</div>`}</h1>
     ${tablesHtml}
-    ${footerHtml ? `<div class="doc-footer">${footerHtml}</div>` : ''}
+    ${footer.type === 'single' && footer.names[0] ? `
+        <div class="doc-footer single">
+            <div class="sign-box"><div class="sign-line">${escapeHtml(footer.names[0])}</div></div>
+        </div>
+    ` : ''}
+    ${footer.type === 'triple' ? `
+        <div class="doc-footer triple">
+            <div class="sign-box"><div class="sign-line">${escapeHtml(footer.names[0] || '')}</div></div>
+            <div class="sign-box"><div class="sign-line">${escapeHtml(footer.names[1] || '')}</div></div>
+            <div class="sign-box"><div class="sign-line">${escapeHtml(footer.names[2] || '')}</div></div>
+        </div>
+    ` : ''}
 </body>
 </html>`;
 

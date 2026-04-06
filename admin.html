@@ -310,7 +310,7 @@
                             <div style="margin-bottom:12px;">
                                 <label for="pdfHeadingInput" style="display:block; font-weight:600; margin-bottom:6px;">PDF Heading</label>
                                 <textarea id="pdfHeadingInput" class="search-box" placeholder="Use event name or type a custom heading" rows="3" style="width:100%; resize:vertical;"></textarea>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Leave blank to use the selected event name automatically. Press Enter to add multiple centered lines.</div>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">Type the heading you want above the table. Leave it blank to use the event name automatically.</div>
                             </div>
 
                             <div style="margin-bottom:12px;">
@@ -341,13 +341,39 @@
                                     <input type="number" id="pdfRowsPerPageInput" class="search-box" min="1" step="1" placeholder="Auto" style="width:100%;">
                                 </div>
                             </div>
-                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose a row range instead of total rows, and optionally force a fixed number of rows on each PDF page.</div>
+                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose which response rows should appear in the PDF. Example: Start Row `1`, End Row `25`, Rows Per Page `10`.</div>
 
                             <div style="margin-bottom:12px;">
-                                <label for="pdfFooterInput" style="display:block; font-weight:600; margin-bottom:6px;">PDF Footer</label>
-                                <textarea id="pdfFooterInput" class="search-box" placeholder="Add custom footer text for each PDF page" rows="2" style="width:100%; resize:vertical;"></textarea>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">This footer will appear at the bottom of every PDF page.</div>
+                                <label for="pdfFooterTypeSelect" style="display:block; font-weight:600; margin-bottom:6px;">Signature Footer</label>
+                                <select id="pdfFooterTypeSelect" class="search-box" style="width:100%;">
+                                    <option value="none">No Signature</option>
+                                    <option value="single">Single Signature (Right Side)</option>
+                                    <option value="triple">Three Signatures</option>
+                                </select>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">Choose how the signature area should appear below the table.</div>
                             </div>
+
+                            <div id="pdfSingleFooterFields" style="display:none; margin-bottom:12px;">
+                                <label for="pdfFooterSingleNameInput" style="display:block; font-weight:600; margin-bottom:6px;">Single Signature Name</label>
+                                <input type="text" id="pdfFooterSingleNameInput" class="search-box" placeholder="Enter the name for the right-side signature" style="width:100%;">
+                            </div>
+
+                            <div id="pdfTripleFooterFields" style="display:none; margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                                <div>
+                                    <label for="pdfFooterName1Input" style="display:block; font-weight:600; margin-bottom:6px;">Left Signature</label>
+                                    <input type="text" id="pdfFooterName1Input" class="search-box" placeholder="Left side name" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="pdfFooterName2Input" style="display:block; font-weight:600; margin-bottom:6px;">Center Signature</label>
+                                    <input type="text" id="pdfFooterName2Input" class="search-box" placeholder="Center name" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="pdfFooterName3Input" style="display:block; font-weight:600; margin-bottom:6px;">Right Signature</label>
+                                    <input type="text" id="pdfFooterName3Input" class="search-box" placeholder="Right side name" style="width:100%;">
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:#667085; margin-top:-4px;">The signature block will be placed with proper gap below the table.</div>
+                        </div>
 
                             <div id="pdfColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
 
@@ -381,7 +407,7 @@
                             <div style="margin-bottom:12px;">
                                 <label for="wordHeadingInput" style="display:block; font-weight:600; margin-bottom:6px;">Word Heading</label>
                                 <textarea id="wordHeadingInput" class="search-box" placeholder="Use event name or type a custom heading" rows="3" style="width:100%; resize:vertical;"></textarea>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Leave blank to use the selected event name automatically. Press Enter to add multiple centered lines.</div>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">Type the heading you want above the table. Leave it blank to use the event name automatically.</div>
                             </div>
 
                             <div style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
@@ -398,12 +424,36 @@
                                     <input type="number" id="wordRowsPerPageInput" class="search-box" min="1" step="1" placeholder="Auto" style="width:100%;">
                                 </div>
                             </div>
-                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose the response row range and optional rows-per-page grouping for the Word export.</div>
+                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose which response rows should appear in the Word file. Example: Start Row `1`, End Row `25`, Rows Per Page `10`.</div>
 
                             <div style="margin-bottom:12px;">
-                                <label for="wordFooterInput" style="display:block; font-weight:600; margin-bottom:6px;">Word Footer</label>
-                                <textarea id="wordFooterInput" class="search-box" placeholder="Add custom footer text for the Word export" rows="2" style="width:100%; resize:vertical;"></textarea>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">This footer will be shown below the exported table.</div>
+                                <label for="wordFooterTypeSelect" style="display:block; font-weight:600; margin-bottom:6px;">Signature Footer</label>
+                                <select id="wordFooterTypeSelect" class="search-box" style="width:100%;">
+                                    <option value="none">No Signature</option>
+                                    <option value="single">Single Signature (Right Side)</option>
+                                    <option value="triple">Three Signatures</option>
+                                </select>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">Choose how the signature area should appear below the table.</div>
+                            </div>
+
+                            <div id="wordSingleFooterFields" style="display:none; margin-bottom:12px;">
+                                <label for="wordFooterSingleNameInput" style="display:block; font-weight:600; margin-bottom:6px;">Single Signature Name</label>
+                                <input type="text" id="wordFooterSingleNameInput" class="search-box" placeholder="Enter the name for the right-side signature" style="width:100%;">
+                            </div>
+
+                            <div id="wordTripleFooterFields" style="display:none; margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                                <div>
+                                    <label for="wordFooterName1Input" style="display:block; font-weight:600; margin-bottom:6px;">Left Signature</label>
+                                    <input type="text" id="wordFooterName1Input" class="search-box" placeholder="Left side name" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="wordFooterName2Input" style="display:block; font-weight:600; margin-bottom:6px;">Center Signature</label>
+                                    <input type="text" id="wordFooterName2Input" class="search-box" placeholder="Center name" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label for="wordFooterName3Input" style="display:block; font-weight:600; margin-bottom:6px;">Right Signature</label>
+                                    <input type="text" id="wordFooterName3Input" class="search-box" placeholder="Right side name" style="width:100%;">
+                                </div>
                             </div>
 
                             <div id="wordColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>

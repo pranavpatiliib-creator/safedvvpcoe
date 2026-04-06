@@ -9,9 +9,42 @@ const eventDetailsDiv = document.getElementById('eventDetails');
 const registrationForm = document.getElementById('registrationForm');
 const questionsContainer = document.getElementById('questionsContainer');
 const successMessage = document.getElementById('successMessage');
+const registrationSubmitBtn = registrationForm?.querySelector('button[type="submit"]');
 
 let currentEvent = null;
 let currentQuestions = [];
+let currentEventId = null;
+let registrationSubmitting = false;
+
+function getRegistrationStorageKey(eventId) {
+    return `event-registration-submitted:${String(eventId || '')}`;
+}
+
+function hasSubmittedRegistration(eventId) {
+    try {
+        return window.localStorage.getItem(getRegistrationStorageKey(eventId)) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function markRegistrationSubmitted(eventId) {
+    try {
+        window.localStorage.setItem(getRegistrationStorageKey(eventId), '1');
+    } catch {
+        // Ignore storage errors and still allow the success flow.
+    }
+}
+
+function showAlreadyRegisteredMessage() {
+    registrationForm.style.display = 'none';
+    successMessage.style.display = 'block';
+    successMessage.innerHTML = `
+        <h2>Registration Already Submitted</h2>
+        <p>You have already filled this registration form on this device.</p>
+        <a href="events.html" class="btn btn-primary">Back to Events</a>
+    `;
+}
 
 function isRegistrationClosed(eventDate) {
     if (!eventDate) return false;
@@ -31,6 +64,7 @@ function getEventIdFromUrl() {
 
 async function loadEventDetails() {
     const eventId = getEventIdFromUrl();
+    currentEventId = eventId;
 
     if (!eventId) {
         showError('No event selected');
@@ -98,8 +132,15 @@ async function loadEventDetails() {
         console.log('Loaded questions:', currentQuestions.length);
 
         generateDynamicForm();
-        registrationForm.style.display = registrationClosed ? 'none' : 'block';
-        successMessage.style.display = 'none';
+        if (registrationClosed) {
+            registrationForm.style.display = 'none';
+            successMessage.style.display = 'none';
+        } else if (hasSubmittedRegistration(eventId)) {
+            showAlreadyRegisteredMessage();
+        } else {
+            registrationForm.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
     } catch (error) {
         console.error('Error loading event details:', error);
         showError('Failed to load event details');
@@ -310,7 +351,17 @@ async function uploadResponseFile(file) {
 registrationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    if (registrationSubmitting) {
+        return;
+    }
+
     try {
+        registrationSubmitting = true;
+        if (registrationSubmitBtn) {
+            registrationSubmitBtn.disabled = true;
+            registrationSubmitBtn.textContent = 'Uploading PDF / Submitting...';
+        }
+
         const rawAnswers = collectFormData();
         const answers = {};
 
@@ -318,10 +369,17 @@ registrationForm.addEventListener('submit', async (e) => {
             const questionId = question.id;
             const value = rawAnswers[questionId];
             if (question.type === 'file' && value instanceof File) {
+                if (registrationSubmitBtn) {
+                    registrationSubmitBtn.textContent = `Uploading ${value.name}...`;
+                }
                 answers[questionId] = await uploadResponseFile(value);
             } else {
                 answers[questionId] = value;
             }
+        }
+
+        if (registrationSubmitBtn) {
+            registrationSubmitBtn.textContent = 'Submitting Registration...';
         }
 
         const response = await fetch('/api/public-submit-response', {
@@ -338,13 +396,24 @@ registrationForm.addEventListener('submit', async (e) => {
             throw new Error(data?.error || data?.message || 'Failed to submit response');
         }
 
+        markRegistrationSubmitted(currentEvent?.id || currentEventId);
         registrationForm.style.display = 'none';
         successMessage.style.display = 'block';
+        successMessage.innerHTML = `
+            <h2>Registration Successful!</h2>
+            <p>Your registration has been submitted successfully. This form is now locked on this device.</p>
+            <a href="events.html" class="btn btn-primary">Back to Events</a>
+        `;
         successMessage.scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
         console.error('Error submitting registration:', error);
         showError('Failed to submit registration. Please try again.');
         alert('Failed to submit registration. Please try again.');
+        registrationSubmitting = false;
+        if (registrationSubmitBtn) {
+            registrationSubmitBtn.disabled = false;
+            registrationSubmitBtn.textContent = 'Submit Registration';
+        }
     }
 });
 

@@ -36,7 +36,13 @@ const pdfHeadingInput = document.getElementById('pdfHeadingInput');
 const pdfRowRangeStartInput = document.getElementById('pdfRowRangeStartInput');
 const pdfRowRangeEndInput = document.getElementById('pdfRowRangeEndInput');
 const pdfRowsPerPageInput = document.getElementById('pdfRowsPerPageInput');
-const pdfFooterInput = document.getElementById('pdfFooterInput');
+const pdfFooterTypeSelect = document.getElementById('pdfFooterTypeSelect');
+const pdfSingleFooterFields = document.getElementById('pdfSingleFooterFields');
+const pdfTripleFooterFields = document.getElementById('pdfTripleFooterFields');
+const pdfFooterSingleNameInput = document.getElementById('pdfFooterSingleNameInput');
+const pdfFooterName1Input = document.getElementById('pdfFooterName1Input');
+const pdfFooterName2Input = document.getElementById('pdfFooterName2Input');
+const pdfFooterName3Input = document.getElementById('pdfFooterName3Input');
 const pdfPreviewPanel = document.getElementById('pdfPreviewPanel');
 const wordOptionsPanel = document.getElementById('wordOptionsPanel');
 const wordColumnChecklist = document.getElementById('wordColumnChecklist');
@@ -49,7 +55,13 @@ const wordHeadingInput = document.getElementById('wordHeadingInput');
 const wordRowRangeStartInput = document.getElementById('wordRowRangeStartInput');
 const wordRowRangeEndInput = document.getElementById('wordRowRangeEndInput');
 const wordRowsPerPageInput = document.getElementById('wordRowsPerPageInput');
-const wordFooterInput = document.getElementById('wordFooterInput');
+const wordFooterTypeSelect = document.getElementById('wordFooterTypeSelect');
+const wordSingleFooterFields = document.getElementById('wordSingleFooterFields');
+const wordTripleFooterFields = document.getElementById('wordTripleFooterFields');
+const wordFooterSingleNameInput = document.getElementById('wordFooterSingleNameInput');
+const wordFooterName1Input = document.getElementById('wordFooterName1Input');
+const wordFooterName2Input = document.getElementById('wordFooterName2Input');
+const wordFooterName3Input = document.getElementById('wordFooterName3Input');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -143,7 +155,11 @@ function resetPdfOptions() {
     if (pdfRowRangeStartInput) pdfRowRangeStartInput.value = '';
     if (pdfRowRangeEndInput) pdfRowRangeEndInput.value = '';
     if (pdfRowsPerPageInput) pdfRowsPerPageInput.value = '';
-    if (pdfFooterInput) pdfFooterInput.value = '';
+    if (pdfFooterTypeSelect) pdfFooterTypeSelect.value = 'none';
+    [pdfFooterSingleNameInput, pdfFooterName1Input, pdfFooterName2Input, pdfFooterName3Input].forEach((input) => {
+        if (input) input.value = '';
+    });
+    updatePdfFooterFields();
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
@@ -158,7 +174,11 @@ function resetWordOptions() {
     if (wordRowRangeStartInput) wordRowRangeStartInput.value = '';
     if (wordRowRangeEndInput) wordRowRangeEndInput.value = '';
     if (wordRowsPerPageInput) wordRowsPerPageInput.value = '';
-    if (wordFooterInput) wordFooterInput.value = '';
+    if (wordFooterTypeSelect) wordFooterTypeSelect.value = 'none';
+    [wordFooterSingleNameInput, wordFooterName1Input, wordFooterName2Input, wordFooterName3Input].forEach((input) => {
+        if (input) input.value = '';
+    });
+    updateWordFooterFields();
     renderWordOptionsPanel();
 }
 
@@ -184,6 +204,60 @@ function getRowRangeOptions(startInput, endInput, rowsPerPageInput) {
         endRow,
         rowsPerPage
     };
+}
+
+function updatePdfFooterFields() {
+    const type = pdfFooterTypeSelect?.value || 'none';
+    if (pdfSingleFooterFields) pdfSingleFooterFields.style.display = type === 'single' ? 'block' : 'none';
+    if (pdfTripleFooterFields) pdfTripleFooterFields.style.display = type === 'triple' ? 'grid' : 'none';
+}
+
+function updateWordFooterFields() {
+    const type = wordFooterTypeSelect?.value || 'none';
+    if (wordSingleFooterFields) wordSingleFooterFields.style.display = type === 'single' ? 'block' : 'none';
+    if (wordTripleFooterFields) wordTripleFooterFields.style.display = type === 'triple' ? 'grid' : 'none';
+}
+
+function getSignatureFooterConfig(kind) {
+    if (kind === 'word') {
+        const type = wordFooterTypeSelect?.value || 'none';
+        if (type === 'single') {
+            return {
+                type,
+                names: [String(wordFooterSingleNameInput?.value || '').trim()].filter(Boolean)
+            };
+        }
+        if (type === 'triple') {
+            return {
+                type,
+                names: [
+                    String(wordFooterName1Input?.value || '').trim(),
+                    String(wordFooterName2Input?.value || '').trim(),
+                    String(wordFooterName3Input?.value || '').trim()
+                ].filter(Boolean)
+            };
+        }
+        return { type: 'none', names: [] };
+    }
+
+    const type = pdfFooterTypeSelect?.value || 'none';
+    if (type === 'single') {
+        return {
+            type,
+            names: [String(pdfFooterSingleNameInput?.value || '').trim()].filter(Boolean)
+        };
+    }
+    if (type === 'triple') {
+        return {
+            type,
+            names: [
+                String(pdfFooterName1Input?.value || '').trim(),
+                String(pdfFooterName2Input?.value || '').trim(),
+                String(pdfFooterName3Input?.value || '').trim()
+            ].filter(Boolean)
+        };
+    }
+    return { type: 'none', names: [] };
 }
 
 function openPdfOptionsPanel() {
@@ -653,7 +727,7 @@ function renderPdfPreview() {
     }
 
     const heading = (pdfHeadingInput?.value || selectedEventData?.title || selectedEventTitle?.textContent || '').trim() || 'PDF Preview';
-    const footer = (pdfFooterInput?.value || '').trim();
+    const footer = getSignatureFooterConfig('pdf');
     const orientation = getPdfOrientation();
     const { rows, rowsPerPage } = getPreviewRows(columns, rangeOptions);
     const pages = [];
@@ -687,11 +761,38 @@ function renderPdfPreview() {
                     </table>
                 </div>
             </div>
-            <div style="padding:10px 18px 14px; border-top:1px solid #e2e8f0; font-size:11px; color:#475569; text-align:center; white-space:pre-line;">
-                ${escapeHtml(footer || 'No footer set')}
+            <div style="padding:26px 18px 18px; border-top:1px solid #e2e8f0; font-size:11px; color:#475569;">
+                ${renderPreviewSignatureFooter(footer)}
             </div>
         </div>
     `).join('');
+}
+
+function renderPreviewSignatureFooter(footer) {
+    if (!footer || footer.type === 'none' || !footer.names?.length) {
+        return '<div style="text-align:center; color:#94a3b8;">No signature footer selected</div>';
+    }
+
+    if (footer.type === 'single') {
+        return `
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                <div style="min-width:180px; text-align:center;">
+                    <div style="border-top:1px solid #64748b; padding-top:8px;">${escapeHtml(footer.names[0] || '')}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    const names = [footer.names[0] || '', footer.names[1] || '', footer.names[2] || ''];
+    return `
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:36px; margin-top:8px;">
+            ${names.map((name) => `
+                <div style="text-align:center; min-height:38px;">
+                    <div style="border-top:1px solid #64748b; padding-top:8px;">${escapeHtml(name)}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
 
 // 🔹 EVENT CREATION FUNCTIONS
@@ -1841,7 +1942,11 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     if (pdfRowRangeStartInput) pdfRowRangeStartInput.value = '';
     if (pdfRowRangeEndInput) pdfRowRangeEndInput.value = '';
     if (pdfRowsPerPageInput) pdfRowsPerPageInput.value = '';
-    if (pdfFooterInput) pdfFooterInput.value = '';
+    if (pdfFooterTypeSelect) pdfFooterTypeSelect.value = 'none';
+    [pdfFooterSingleNameInput, pdfFooterName1Input, pdfFooterName2Input, pdfFooterName3Input].forEach((input) => {
+        if (input) input.value = '';
+    });
+    updatePdfFooterFields();
     document.querySelectorAll('input[name="pdfOrientation"]').forEach(radio => {
         radio.checked = radio.value === 'portrait';
     });
@@ -1852,7 +1957,11 @@ async function selectEvent(eventId, eventTitle, itemEl) {
     if (wordRowRangeStartInput) wordRowRangeStartInput.value = '';
     if (wordRowRangeEndInput) wordRowRangeEndInput.value = '';
     if (wordRowsPerPageInput) wordRowsPerPageInput.value = '';
-    if (wordFooterInput) wordFooterInput.value = '';
+    if (wordFooterTypeSelect) wordFooterTypeSelect.value = 'none';
+    [wordFooterSingleNameInput, wordFooterName1Input, wordFooterName2Input, wordFooterName3Input].forEach((input) => {
+        if (input) input.value = '';
+    });
+    updateWordFooterFields();
 
     try {
         const client = await window.waitForSupabaseClient();
@@ -2057,10 +2166,17 @@ if (pdfBlankColumnsList && !pdfBlankColumnsList.__bound) {
     });
 }
 
-[pdfHeadingInput, pdfRowRangeStartInput, pdfRowRangeEndInput, pdfRowsPerPageInput, pdfFooterInput].forEach((input) => {
+[pdfHeadingInput, pdfRowRangeStartInput, pdfRowRangeEndInput, pdfRowsPerPageInput, pdfFooterTypeSelect, pdfFooterSingleNameInput, pdfFooterName1Input, pdfFooterName2Input, pdfFooterName3Input].forEach((input) => {
     if (!input || input.__bound) return;
     input.__bound = true;
-    input.addEventListener('input', renderPdfPreview);
+    input.addEventListener('input', () => {
+        updatePdfFooterFields();
+        renderPdfPreview();
+    });
+    input.addEventListener('change', () => {
+        updatePdfFooterFields();
+        renderPdfPreview();
+    });
 });
 
 document.querySelectorAll('input[name="pdfOrientation"]').forEach((radio) => {
@@ -2198,7 +2314,7 @@ function initializeExportHandlers() {
                         endRow: pdfRangeOptions.endRow,
                         rowsPerPage: pdfRangeOptions.rowsPerPage,
                         orientation: pdfOrientation,
-                        footer: pdfFooterInput?.value?.trim() || '',
+                        footer: getSignatureFooterConfig('pdf'),
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );
@@ -2291,7 +2407,7 @@ function initializeExportHandlers() {
                         startRow: wordRangeOptions.startRow,
                         endRow: wordRangeOptions.endRow,
                         rowsPerPage: wordRangeOptions.rowsPerPage,
-                        footer: wordFooterInput?.value?.trim() || '',
+                        footer: getSignatureFooterConfig('word'),
                         letterheadUrls: ['lh.jpg', 'lh.jpeg', 'collegeheader.jpeg']
                     }
                 );
