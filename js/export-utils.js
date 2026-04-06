@@ -299,6 +299,13 @@
         return { type, names };
     }
 
+    function normalizeMultilineFooterText(value) {
+        return String(value || '')
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+    }
+
     function buildPdfTableData(eventData, questions, responses, columns) {
         const normalizedColumns = normalizePdfColumns(columns, questions);
         const rows = (responses || []).map((response, index) => {
@@ -538,14 +545,16 @@
                 const lineStart = pageWidth - margin - 55;
                 const lineEnd = pageWidth - margin;
                 doc.line(lineStart, footerY, lineEnd, footerY);
-                doc.text(footer.names[0], (lineStart + lineEnd) / 2, footerY + 5, { align: 'center' });
+                const lines = normalizeMultilineFooterText(footer.names[0]);
+                doc.text(lines.length ? lines : [''], (lineStart + lineEnd) / 2, footerY + 5, { align: 'center' });
                 return;
             }
 
             const slots = [margin + 28, pageWidth / 2, pageWidth - margin - 28];
             slots.forEach((x, index) => {
                 doc.line(x - 20, footerY, x + 20, footerY);
-                doc.text(footer.names[index] || '', x, footerY + 5, { align: 'center' });
+                const lines = normalizeMultilineFooterText(footer.names[index] || '');
+                doc.text(lines.length ? lines : [''], x, footerY + 5, { align: 'center' });
             });
         };
 
@@ -659,7 +668,7 @@
         .doc-footer.single { display: flex; justify-content: flex-end; }
         .doc-footer.triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
         .sign-box { min-height: 38px; text-align: center; }
-        .sign-line { border-top: 1px solid #475569; padding-top: 8px; display: inline-block; min-width: 140px; }
+        .sign-line { border-top: 1px solid #475569; padding-top: 8px; display: inline-block; min-width: 140px; white-space: pre-line; }
     </style>
 </head>
 <body>

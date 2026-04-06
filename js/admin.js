@@ -260,6 +260,61 @@ function getSignatureFooterConfig(kind) {
     return { type: 'none', names: [] };
 }
 
+function toTitleCaseWords(value) {
+    const smallWords = new Set(['a', 'an', 'and', 'as', 'at', 'by', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with']);
+    const words = String(value || '').split(/(\s+)/);
+
+    let wordIndex = 0;
+    return words.map((part) => {
+        if (!part || /^\s+$/.test(part)) return part;
+
+        const lower = part.toLowerCase();
+        const formatted = lower.replace(/^[a-z]/, (char) => char.toUpperCase());
+        const result = wordIndex > 0 && smallWords.has(lower) ? lower : formatted;
+        wordIndex += 1;
+        return result;
+    }).join('');
+}
+
+function applyTitleCaseToInput(input) {
+    if (!input) return;
+
+    const start = typeof input.selectionStart === 'number' ? input.selectionStart : null;
+    const end = typeof input.selectionEnd === 'number' ? input.selectionEnd : null;
+    const formatted = toTitleCaseWords(input.value);
+
+    if (formatted === input.value) return;
+    input.value = formatted;
+
+    if (start != null && end != null && typeof input.setSelectionRange === 'function') {
+        input.setSelectionRange(start, end);
+    }
+}
+
+function shouldAutoTitleCase(input) {
+    if (!input) return false;
+    if (input.dataset.noTitleCase === 'true') return false;
+
+    const tagName = String(input.tagName || '').toLowerCase();
+    const type = String(input.type || '').toLowerCase();
+    const excludedTypes = new Set(['email', 'password', 'search', 'file', 'number', 'datetime-local', 'date', 'time', 'hidden', 'radio', 'checkbox']);
+
+    if (tagName === 'textarea') return true;
+    if (tagName !== 'input') return false;
+    return !excludedTypes.has(type);
+}
+
+function initializeDashboardAutoTitleCase() {
+    const fields = document.querySelectorAll('input, textarea');
+
+    fields.forEach((field) => {
+        if (!shouldAutoTitleCase(field) || field.__titleCaseBound) return;
+        field.__titleCaseBound = true;
+        field.addEventListener('input', () => applyTitleCaseToInput(field));
+        field.addEventListener('blur', () => applyTitleCaseToInput(field));
+    });
+}
+
 function openPdfOptionsPanel() {
     if (!selectedEventId) {
         alert('Please select an event first');
@@ -777,7 +832,7 @@ function renderPreviewSignatureFooter(footer) {
         return `
             <div style="display:flex; justify-content:flex-end; margin-top:8px;">
                 <div style="min-width:180px; text-align:center;">
-                    <div style="border-top:1px solid #64748b; padding-top:8px;">${escapeHtml(footer.names[0] || '')}</div>
+                    <div style="border-top:1px solid #64748b; padding-top:8px; white-space:pre-line;">${escapeHtml(footer.names[0] || '')}</div>
                 </div>
             </div>
         `;
@@ -788,7 +843,7 @@ function renderPreviewSignatureFooter(footer) {
         <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:36px; margin-top:8px;">
             ${names.map((name) => `
                 <div style="text-align:center; min-height:38px;">
-                    <div style="border-top:1px solid #64748b; padding-top:8px;">${escapeHtml(name)}</div>
+                    <div style="border-top:1px solid #64748b; padding-top:8px; white-space:pre-line;">${escapeHtml(name)}</div>
                 </div>
             `).join('')}
         </div>
@@ -2578,6 +2633,7 @@ function initializeAssociationMemberControls() {
 // Load events when page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎯 DOMContentLoaded complete - Initializing handlers...');
+    initializeDashboardAutoTitleCase();
     loadEvents();
     initializeQuickQuestionForm();
     initializeExportHandlers();
@@ -2590,6 +2646,7 @@ async function initializeAdminDashboard() {
     adminDashboardInitialized = true;
 
     console.log('Admin dashboard authenticated - initializing handlers...');
+    initializeDashboardAutoTitleCase();
     initializeAssociationMemberControls();
     initializeQuickQuestionForm();
     initializeExportHandlers();
