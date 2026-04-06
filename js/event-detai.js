@@ -298,26 +298,12 @@ async function uploadResponseFile(file) {
         reader.readAsDataURL(file);
     });
 
-    const response = await fetch('/api/public-upload-response-file', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type || 'application/octet-stream',
-            dataBase64
-        })
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-        throw new Error(data?.error || data?.message || 'Failed to upload file');
-    }
-
     return {
-        url: data?.url || '',
+        __fileUpload: true,
         fileName: file.name,
         contentType: file.type || 'application/octet-stream',
-        size: file.size || 0
+        size: file.size || 0,
+        dataBase64
     };
 }
 
