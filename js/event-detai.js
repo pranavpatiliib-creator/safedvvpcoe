@@ -11,6 +11,8 @@ const registrationForm = document.getElementById('registrationForm');
 const questionsContainer = document.getElementById('questionsContainer');
 const successMessage = document.getElementById('successMessage');
 const registrationSubmitBtn = registrationForm?.querySelector('button[type="submit"]');
+const registrationSection = document.querySelector('.registration-section');
+const registrationWrapper = document.querySelector('.registration-wrapper');
 
 let currentEvent = null;
 let currentQuestions = [];
@@ -94,6 +96,13 @@ async function loadEventDetails() {
         currentEventResult = (eventResultData?.results || []).find((item) => String(item.event_id) === String(eventId)) || null;
         const registrationClosed = isRegistrationClosed(currentEvent.date);
 
+        if (registrationSection) {
+            registrationSection.classList.toggle('closed-event-page', registrationClosed);
+        }
+        if (registrationWrapper) {
+            registrationWrapper.classList.toggle('closed-event-page', registrationClosed);
+        }
+
         const formattedDate = new Date(currentEvent.date).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -101,35 +110,34 @@ async function loadEventDetails() {
             day: 'numeric'
         });
 
-        eventDetailsDiv.innerHTML = `
-            <div class="event-hero-title-wrap">
-                <p class="event-kicker">Upcoming Event</p>
-                <h1 class="event-hero-title">${escapeHtml(currentEvent.title)}</h1>
-            </div>
-            <div class="event-hero-card">
-                ${currentEvent.flyer_url
-            ? `<div class="event-hero-image-wrap">
-                        <img class="event-hero-image" src="${escapeHtml(currentEvent.flyer_url)}" alt="${escapeHtml(currentEvent.title)} flyer">
-                   </div>`
-            : ''}
-                <div class="event-meta">
-                    <div class="event-meta-item">
-                        <span class="event-meta-icon">Date</span>
-                        <span>${formattedDate}</span>
+        eventDetailsDiv.innerHTML = registrationClosed
+            ? `
+                <div class="event-hero-title-wrap closed-event-title-wrap">
+                    <h1 class="event-hero-title">${escapeHtml(currentEvent.title)}</h1>
+                </div>
+            `
+            : `
+                <div class="event-hero-title-wrap">
+                    <p class="event-kicker">Upcoming Event</p>
+                    <h1 class="event-hero-title">${escapeHtml(currentEvent.title)}</h1>
+                </div>
+                <div class="event-hero-card">
+                    ${currentEvent.flyer_url
+                ? `<div class="event-hero-image-wrap">
+                            <img class="event-hero-image" src="${escapeHtml(currentEvent.flyer_url)}" alt="${escapeHtml(currentEvent.title)} flyer">
+                       </div>`
+                : ''}
+                    <div class="event-meta">
+                        <div class="event-meta-item">
+                            <span class="event-meta-icon">Date</span>
+                            <span>${formattedDate}</span>
+                        </div>
+                    </div>
+                    <div class="event-description">
+                        <p>${escapeHtml(currentEvent.description || 'No description available')}</p>
                     </div>
                 </div>
-                <div class="event-description">
-                    <p>${escapeHtml(currentEvent.description || 'No description available')}</p>
-                </div>
-                ${registrationClosed
-                ? `<div class="event-closed-note">
-                        <span class="event-status-pill">Registration Closed</span>
-                        <h2>Thank You</h2>
-                        <p>Thank you to all students, faculty members, coordinators, volunteers, and supporters who helped make this event successful.</p>
-                   </div>`
-                : ''}
-            </div>
-        `;
+            `;
 
         renderWinnersSection(registrationClosed);
 
