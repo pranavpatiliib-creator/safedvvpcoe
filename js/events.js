@@ -53,11 +53,20 @@ async function loadEvents() {
     try {
         eventsContainer.innerHTML = '<div class="loading">Loading events...</div>';
 
-        const response = await fetch('/api/public-events', { cache: 'no-store' });
-        const data = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(data?.error || 'Failed to fetch events');
+        const [eventsResponse, resultsResponse] = await Promise.all([
+            fetch('/api/public-events', { cache: 'no-store' }),
+            fetch('/api/public-event-results', { cache: 'no-store' })
+        ]);
+        const eventsData = await eventsResponse.json().catch(() => null);
+        const resultsData = await resultsResponse.json().catch(() => null);
+        if (!eventsResponse.ok) throw new Error(eventsData?.error || 'Failed to fetch events');
+        if (!resultsResponse.ok) throw new Error(resultsData?.error || 'Failed to fetch event winners');
 
-        allEvents = data?.events || [];
+        const resultsByEventId = new Map((resultsData?.results || []).map((item) => [String(item.event_id), item]));
+        allEvents = (eventsData?.events || []).map((event) => ({
+            ...event,
+            result: resultsByEventId.get(String(event.id)) || null
+        }));
 
         if (allEvents.length === 0) {
             eventsContainer.innerHTML = `
@@ -121,6 +130,9 @@ function displayEvents(events) {
                 ? `<div class="event-status-message">
                                     <span class="event-status-pill">Registration Closed</span>
                                     <p>Thank you to everyone who supported and helped make this event successful.</p>
+                                    <button class="event-overlay-register" onclick="viewEventResults('${escapeJsString(String(event.id))}')">
+                                        ${(event.result?.winners || []).length ? 'View Winners' : 'View Event'}
+                                    </button>
                                </div>`
                 : `<button class="event-overlay-register" onclick="registerEvent('${escapeJsString(String(event.id))}')">
                                     Register Now
@@ -163,6 +175,10 @@ function escapeJsString(text) {
 }
 
 function registerEvent(eventId) {
+    window.location.href = `event.html?event_id=${encodeURIComponent(eventId)}`;
+}
+
+function viewEventResults(eventId) {
     window.location.href = `event.html?event_id=${encodeURIComponent(eventId)}`;
 }
 

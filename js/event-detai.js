@@ -6,6 +6,7 @@ console.log('event-detai.js loaded');
 window.__eventDetailLoaded = true;
 
 const eventDetailsDiv = document.getElementById('eventDetails');
+const eventWinnersSection = document.getElementById('eventWinnersSection');
 const registrationForm = document.getElementById('registrationForm');
 const questionsContainer = document.getElementById('questionsContainer');
 const successMessage = document.getElementById('successMessage');
@@ -15,6 +16,7 @@ let currentEvent = null;
 let currentQuestions = [];
 let currentEventId = null;
 let registrationSubmitting = false;
+let currentEventResult = null;
 
 function getRegistrationStorageKey(eventId) {
     return `event-registration-submitted:${String(eventId || '')}`;
@@ -73,9 +75,14 @@ async function loadEventDetails() {
 
     try {
         console.log('Loading event details for event_id:', eventId);
-        const eventRes = await fetch('/api/public-events', { cache: 'no-store' });
+        const [eventRes, eventResultRes] = await Promise.all([
+            fetch('/api/public-events', { cache: 'no-store' }),
+            fetch(`/api/public-event-results?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
+        ]);
         const eventData = await eventRes.json().catch(() => null);
+        const eventResultData = await eventResultRes.json().catch(() => null);
         if (!eventRes.ok) throw new Error(eventData?.error || 'Failed to fetch events');
+        if (!eventResultRes.ok) throw new Error(eventResultData?.error || 'Failed to fetch event winners');
 
         const events = eventData?.events || [];
         const matched = events.find((item) => String(item.id) === String(eventId));
@@ -85,6 +92,7 @@ async function loadEventDetails() {
         }
 
         currentEvent = matched;
+        currentEventResult = eventResultData?.result || null;
         const registrationClosed = isRegistrationClosed(currentEvent.date);
 
         const formattedDate = new Date(currentEvent.date).toLocaleDateString('en-US', {
@@ -124,6 +132,8 @@ async function loadEventDetails() {
             </div>
         `;
 
+        renderWinnersSection(registrationClosed);
+
         const questionRes = await fetch(`/api/public-questions?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
         const questionData = await questionRes.json().catch(() => null);
         if (!questionRes.ok) throw new Error(questionData?.error || 'Failed to fetch questions');
@@ -162,6 +172,61 @@ function generateDynamicForm() {
         const formGroup = createFormField(question, index);
         questionsContainer.appendChild(formGroup);
     });
+}
+
+function renderWinnersSection(registrationClosed) {
+    if (!eventWinnersSection) return;
+
+    const winners = Array.isArray(currentEventResult?.winners)
+        ? currentEventResult.winners.filter((winner) => winner?.name || winner?.image_url).sort((a, b) => Number(a.rank) - Number(b.rank)).slice(0, 3)
+        : [];
+    const galleryImages = Array.isArray(currentEventResult?.gallery_images)
+        ? currentEventResult.gallery_images.filter(Boolean)
+        : [];
+
+    if (!registrationClosed || (!winners.length && !galleryImages.length) || !currentEventResult?.gallery_enabled) {
+        eventWinnersSection.style.display = 'none';
+        eventWinnersSection.innerHTML = '';
+        return;
+    }
+
+    eventWinnersSection.style.display = 'block';
+    eventWinnersSection.innerHTML = `
+        <div class="event-winners-header">
+            <h2>Top Three Winners</h2>
+            <p>These winners are displayed after the event deadline for ${escapeHtml(currentEvent?.title || 'this event')}.</p>
+        </div>
+        ${galleryImages.length ? `
+            <div class="winners-grid" style="margin-bottom:20px;">
+                ${galleryImages.map((url, index) => `
+                    <article class="winner-card">
+                        <img class="winner-card-image" src="${escapeHtml(url)}" alt="${escapeHtml(currentEvent?.title || 'Event')} image ${index + 1}">
+                    </article>
+                `).join('')}
+            </div>
+        ` : ''}
+        ${winners.length ? `<div class="winners-grid">
+            ${winners.map((winner) => `
+                <article class="winner-card">
+                    ${winner.image_url
+                ? `<img class="winner-card-image" src="${escapeHtml(winner.image_url)}" alt="${escapeHtml(winner.name || `Winner ${winner.rank}`)}">`
+                : `<div class="winner-card-placeholder">Winner ${Number(winner.rank) || ''}</div>`}
+                    <div class="winner-card-body">
+                        <span class="winner-rank">${formatWinnerRank(winner.rank)}</span>
+                        <h3 class="winner-name">${escapeHtml(winner.name || `Winner ${winner.rank}`)}</h3>
+                    </div>
+                </article>
+            `).join('')}
+        </div>` : ''}
+    `;
+}
+
+function formatWinnerRank(rank) {
+    const value = Number(rank);
+    if (value === 1) return '1st Prize';
+    if (value === 2) return '2nd Prize';
+    if (value === 3) return '3rd Prize';
+    return `${value || ''} Prize`.trim();
 }
 
 function createFormField(question, index) {

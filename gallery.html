@@ -34,18 +34,10 @@
     <section class="gallery-section">
         <div class="assoc-container">
             <h2 class="events-title">Gallery</h2>
-            <p class="events-subtitle">A quick glimpse into the activities and memories of First Year Engineering.</p>
+            <p class="events-subtitle">Top three winners from completed events will appear here event-wise.</p>
 
-            <div class="gallery-grid">
-                <div class="gallery-item">
-                    <img src="images/collegephoto.jpg" alt="Campus">
-                </div>
-                <div class="gallery-item">
-                    <img src="images/SAFE-Team.jpeg" alt="SAFE Team">
-                </div>
-                <div class="gallery-item">
-                    <img src="images/logo.jpeg" alt="Department Logo">
-                </div>
+            <div id="galleryResults" class="gallery-results">
+                <div class="loading">Loading winners gallery...</div>
             </div>
         </div>
     </section>
@@ -90,6 +82,7 @@
             document.getElementById("navLinks").classList.toggle("active");
         }
     </script>
+    <script src="js/gallery.js"></script>
 </body>
 
 </html>

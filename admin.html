@@ -95,6 +95,13 @@
                                 </small>
                                 <img id="eventFlyerPreview" alt="Flyer preview" style="display:none; margin-top:10px; width:100%; max-height:200px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
                             </div>
+                            <div class="form-group">
+                                <label for="eventGalleryEnabled">Show Winners In Gallery</label>
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
+                                    <input type="checkbox" id="eventGalleryEnabled">
+                                    Enable winner gallery after the event deadline
+                                </label>
+                            </div>
                         </div>
 
                         <!-- QUESTIONS SECTION -->
@@ -469,6 +476,86 @@
                         <div class="filters">
                             <input type="text" id="filterInput" placeholder="Search responses..." class="search-box">
                             <span id="responseCount" class="response-count">0 responses</span>
+                        </div>
+
+                        <div id="winnerManagementPanel" class="winner-management-panel" style="display:none;">
+                            <div class="section-header" style="margin-bottom:16px;">
+                                <h2>Winner Selection</h2>
+                                <button id="saveWinnersBtn" class="btn btn-primary" type="button">Save Winners</button>
+                            </div>
+                            <p class="winner-management-note">Add the top three winners for this event. These winners will be shown after the event deadline on the event page and in the gallery when enabled.</p>
+                            <div class="form-group">
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
+                                    <input type="checkbox" id="winnerGalleryEnabled">
+                                    Show this event in the winners gallery
+                                </label>
+                            </div>
+                            <div class="winner-gallery-upload">
+                                <div class="form-group">
+                                    <label for="eventGalleryImages">Event Gallery Images</label>
+                                    <input type="file" id="eventGalleryImages" accept="image/*" multiple>
+                                    <small style="display:block; color:#667085; margin-top:6px; font-size:12px;">
+                                        Upload images for this particular event. Each image will be compressed up to 300 KB before upload.
+                                    </small>
+                                </div>
+                                <div class="form-actions" style="justify-content:flex-start; margin-top:0;">
+                                    <button id="uploadEventGalleryImagesBtn" class="btn btn-secondary" type="button">Upload Event Images</button>
+                                </div>
+                                <div id="eventGalleryImagesList" class="event-gallery-images-list"></div>
+                            </div>
+                            <div class="winner-management-grid">
+                                <div class="winner-admin-card">
+                                    <h3>1st Prize</h3>
+                                    <div class="form-group">
+                                        <label for="winner1Response">Select From Registrations</label>
+                                        <select id="winner1Response">
+                                            <option value="">Choose a registration</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="winner1Name">Winner Name</label>
+                                        <input type="text" id="winner1Name" placeholder="Enter first winner name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="winner1Image">Winner Image URL</label>
+                                        <input type="url" id="winner1Image" placeholder="https://example.com/photo.jpg">
+                                    </div>
+                                </div>
+                                <div class="winner-admin-card">
+                                    <h3>2nd Prize</h3>
+                                    <div class="form-group">
+                                        <label for="winner2Response">Select From Registrations</label>
+                                        <select id="winner2Response">
+                                            <option value="">Choose a registration</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="winner2Name">Winner Name</label>
+                                        <input type="text" id="winner2Name" placeholder="Enter second winner name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="winner2Image">Winner Image URL</label>
+                                        <input type="url" id="winner2Image" placeholder="https://example.com/photo.jpg">
+                                    </div>
+                                </div>
+                                <div class="winner-admin-card">
+                                    <h3>3rd Prize</h3>
+                                    <div class="form-group">
+                                        <label for="winner3Response">Select From Registrations</label>
+                                        <select id="winner3Response">
+                                            <option value="">Choose a registration</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="winner3Name">Winner Name</label>
+                                        <input type="text" id="winner3Name" placeholder="Enter third winner name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="winner3Image">Winner Image URL</label>
+                                        <input type="url" id="winner3Image" placeholder="https://example.com/photo.jpg">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="responsesTable" class="table-container"></div>

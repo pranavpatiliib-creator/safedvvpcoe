@@ -62,6 +62,21 @@ const wordFooterSingleNameInput = document.getElementById('wordFooterSingleNameI
 const wordFooterName1Input = document.getElementById('wordFooterName1Input');
 const wordFooterName2Input = document.getElementById('wordFooterName2Input');
 const wordFooterName3Input = document.getElementById('wordFooterName3Input');
+const winnerManagementPanel = document.getElementById('winnerManagementPanel');
+const saveWinnersBtn = document.getElementById('saveWinnersBtn');
+const winnerGalleryEnabledInput = document.getElementById('winnerGalleryEnabled');
+const winner1ResponseInput = document.getElementById('winner1Response');
+const winner1NameInput = document.getElementById('winner1Name');
+const winner1ImageInput = document.getElementById('winner1Image');
+const winner2ResponseInput = document.getElementById('winner2Response');
+const winner2NameInput = document.getElementById('winner2Name');
+const winner2ImageInput = document.getElementById('winner2Image');
+const winner3ResponseInput = document.getElementById('winner3Response');
+const winner3NameInput = document.getElementById('winner3Name');
+const winner3ImageInput = document.getElementById('winner3Image');
+const eventGalleryImagesInput = document.getElementById('eventGalleryImages');
+const uploadEventGalleryImagesBtn = document.getElementById('uploadEventGalleryImagesBtn');
+const eventGalleryImagesList = document.getElementById('eventGalleryImagesList');
 
 // Modal elements
 const addEventBtn = document.getElementById('addEventBtn');
@@ -72,6 +87,7 @@ const eventDescriptionInput = document.getElementById('eventDescription');
 const eventDateInput = document.getElementById('eventDate');
 const eventFlyerInput = document.getElementById('eventFlyer');
 const eventFlyerPreview = document.getElementById('eventFlyerPreview');
+const eventGalleryEnabledInput = document.getElementById('eventGalleryEnabled');
 const associationMembersAdminList = document.getElementById('associationMembersAdminList');
 const associationMembersSection = document.getElementById('associationMembersSection');
 const addAssociationMemberBtn = document.getElementById('addAssociationMemberBtn');
@@ -119,6 +135,8 @@ let pdfBlankColumns = [];
 let wordColumnSelectionState = {};
 let wordColumnOrder = [];
 let wordBlankColumns = [];
+let selectedEventResults = null;
+let eventGalleryImages = [];
 
 async function apiRequest(path, { method = 'GET', token, body } = {}) {
     const headers = {};
@@ -881,10 +899,376 @@ function closeAddEventModal() {
     addEventModal.style.display = 'none';
     addEventForm.reset();
     tempEventQuestions = [];
+    if (eventGalleryEnabledInput) {
+        eventGalleryEnabledInput.checked = false;
+    }
     if (eventFlyerPreview) {
         eventFlyerPreview.style.display = 'none';
         eventFlyerPreview.src = '';
     }
+}
+
+function getWinnerInputs() {
+    return [
+        { rank: 1, responseInput: winner1ResponseInput, nameInput: winner1NameInput, imageInput: winner1ImageInput },
+        { rank: 2, responseInput: winner2ResponseInput, nameInput: winner2NameInput, imageInput: winner2ImageInput },
+        { rank: 3, responseInput: winner3ResponseInput, nameInput: winner3NameInput, imageInput: winner3ImageInput }
+    ];
+}
+
+function clearWinnerForm() {
+    getWinnerInputs().forEach(({ responseInput, nameInput, imageInput }) => {
+        if (responseInput) responseInput.innerHTML = '<option value="">Choose a registration</option>';
+        if (responseInput) responseInput.value = '';
+        if (nameInput) nameInput.value = '';
+        if (imageInput) imageInput.value = '';
+    });
+
+    if (winnerGalleryEnabledInput) {
+        winnerGalleryEnabledInput.checked = false;
+    }
+
+    eventGalleryImages = [];
+    renderEventGalleryImages();
+    if (eventGalleryImagesInput) {
+        eventGalleryImagesInput.value = '';
+    }
+}
+
+function fillWinnerForm(resultData) {
+    const winners = Array.isArray(resultData?.winners) ? resultData.winners : [];
+    getWinnerInputs().forEach(({ rank, responseInput, nameInput, imageInput }) => {
+        const winner = winners.find((item) => Number(item?.rank) === rank) || {};
+        if (responseInput) responseInput.value = winner?.response_id ? String(winner.response_id) : '';
+        if (nameInput) nameInput.value = winner?.name || '';
+        if (imageInput) imageInput.value = winner?.image_url || '';
+    });
+
+    if (winnerGalleryEnabledInput) {
+        winnerGalleryEnabledInput.checked = !!resultData?.gallery_enabled;
+    }
+
+    eventGalleryImages = Array.isArray(resultData?.gallery_images)
+        ? resultData.gallery_images.map((item) => String(item || '')).filter(Boolean)
+        : [];
+    renderEventGalleryImages();
+}
+
+function collectWinnerPayload() {
+    const winners = getWinnerInputs().map(({ rank, responseInput, nameInput, imageInput }) => ({
+        rank,
+        response_id: String(responseInput?.value || '').trim() || null,
+        name: String(nameInput?.value || '').trim(),
+        image_url: String(imageInput?.value || '').trim()
+    })).filter((winner) => winner.name || winner.image_url);
+
+    return {
+        event_id: selectedEventId,
+        gallery_enabled: !!winnerGalleryEnabledInput?.checked,
+        gallery_images: eventGalleryImages.slice(),
+        winners
+    };
+}
+
+function renderEventGalleryImages() {
+    if (!eventGalleryImagesList) return;
+
+    if (!eventGalleryImages.length) {
+        eventGalleryImagesList.innerHTML = '<div style="padding:8px 0; color:#667085; font-size:13px;">No event images uploaded yet.</div>';
+        return;
+    }
+
+    eventGalleryImagesList.innerHTML = eventGalleryImages.map((url, index) => `
+        <div class="event-gallery-image-card">
+            <img src="${escapeHtml(url)}" alt="Event Gallery Image ${index + 1}">
+            <button type="button" class="remove-event-gallery-image-btn" data-index="${index}">Remove</button>
+        </div>
+    `).join('');
+}
+
+function extractResponseDisplayName(response) {
+    const answers = response?.answers && typeof response.answers === 'object' ? response.answers : {};
+    const preferredQuestion = allQuestions.find((question) => {
+        const label = String(question?.question || '').toLowerCase();
+        return label.includes('name') || label.includes('student') || label.includes('participant');
+    });
+
+    if (preferredQuestion) {
+        const preferredAnswer = answers[preferredQuestion.id];
+        const normalizedPreferred = normalizeResponseValue(preferredAnswer);
+        if (normalizedPreferred) return normalizedPreferred;
+    }
+
+    for (const value of Object.values(answers)) {
+        const normalized = normalizeResponseValue(value);
+        if (normalized) return normalized;
+    }
+
+    return `Registration #${response?.id || ''}`.trim();
+}
+
+function normalizeResponseValue(value) {
+    if (value == null || value === '') return '';
+    if (typeof value === 'string') return value.trim();
+    if (Array.isArray(value)) return value.map((item) => normalizeResponseValue(item)).filter(Boolean).join(', ');
+    if (typeof value === 'object') {
+        if (Array.isArray(value.member_names) && value.member_names.length) {
+            return value.member_names.join(', ').trim();
+        }
+        if (value.fileName) return String(value.fileName).trim();
+        return '';
+    }
+    return String(value).trim();
+}
+
+function getRegistrationOptionLabel(response) {
+    const displayName = extractResponseDisplayName(response);
+    return `${displayName} [Response ${response.id}]`;
+}
+
+function populateWinnerResponseOptions() {
+    const options = allResponses.map((response) => `
+        <option value="${escapeHtml(String(response.id))}">${escapeHtml(getRegistrationOptionLabel(response))}</option>
+    `).join('');
+
+    getWinnerInputs().forEach(({ responseInput }) => {
+        if (!responseInput) return;
+        const previousValue = responseInput.value;
+        responseInput.innerHTML = `<option value="">Choose a registration</option>${options}`;
+        if (previousValue) responseInput.value = previousValue;
+    });
+}
+
+function syncWinnerNameFromResponse(rank) {
+    const winnerInput = getWinnerInputs().find((item) => item.rank === rank);
+    if (!winnerInput?.responseInput || !winnerInput?.nameInput) return;
+
+    const responseId = String(winnerInput.responseInput.value || '');
+    if (!responseId) return;
+
+    const response = allResponses.find((item) => String(item.id) === responseId);
+    if (!response) return;
+
+    winnerInput.nameInput.value = extractResponseDisplayName(response);
+}
+
+async function loadEventResults(eventId) {
+    clearWinnerForm();
+    selectedEventResults = null;
+
+    try {
+        const response = await fetch(`/api/public-event-results?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.error || 'Failed to load event results');
+
+        selectedEventResults = data?.result || null;
+        fillWinnerForm(selectedEventResults);
+    } catch (error) {
+        console.error('Error loading event results:', error);
+    } finally {
+        if (winnerManagementPanel) {
+            winnerManagementPanel.style.display = 'block';
+        }
+    }
+}
+
+async function compressImageFile(file, maxBytes = 300 * 1024) {
+    const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(reader.error || new Error('Failed to read image'));
+        reader.readAsDataURL(file);
+    });
+
+    const image = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = dataUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    let width = image.width;
+    let height = image.height;
+    const maxDimension = 1920;
+    if (width > maxDimension || height > maxDimension) {
+        const scale = Math.min(maxDimension / width, maxDimension / height);
+        width = Math.max(1, Math.round(width * scale));
+        height = Math.max(1, Math.round(height * scale));
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0, width, height);
+
+    let quality = 0.9;
+    let outputBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+
+    while (outputBlob && outputBlob.size > maxBytes && quality > 0.35) {
+        quality -= 0.08;
+        outputBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    }
+
+    if (outputBlob && outputBlob.size > maxBytes) {
+        let scaledWidth = width;
+        let scaledHeight = height;
+
+        while (outputBlob.size > maxBytes && scaledWidth > 600 && scaledHeight > 600) {
+            scaledWidth = Math.max(600, Math.round(scaledWidth * 0.88));
+            scaledHeight = Math.max(600, Math.round(scaledHeight * 0.88));
+            canvas.width = scaledWidth;
+            canvas.height = scaledHeight;
+            context.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+            outputBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.72));
+        }
+    }
+
+    if (!outputBlob) {
+        throw new Error('Failed to compress image');
+    }
+
+    const dataBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            resolve(result.includes(',') ? result.split(',')[1] : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('Failed to encode image'));
+        reader.readAsDataURL(outputBlob);
+    });
+
+    return {
+        filename: `${String(file.name || 'event-image').replace(/\.[^.]+$/, '') || 'event-image'}.jpg`,
+        contentType: 'image/jpeg',
+        dataBase64,
+        size: outputBlob.size
+    };
+}
+
+async function uploadEventGalleryImages() {
+    if (!selectedEventId) {
+        alert('Please select an event first');
+        return;
+    }
+
+    const files = Array.from(eventGalleryImagesInput?.files || []);
+    if (!files.length) {
+        alert('Please choose at least one image to upload.');
+        return;
+    }
+
+    try {
+        const client = await window.waitForSupabaseClient();
+        const { data: sessionData } = await client.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        if (uploadEventGalleryImagesBtn) {
+            uploadEventGalleryImagesBtn.disabled = true;
+            uploadEventGalleryImagesBtn.textContent = 'Uploading...';
+        }
+
+        const uploadedUrls = [];
+        for (const file of files) {
+            const compressed = await compressImageFile(file, 300 * 1024);
+            const out = await apiRequest('/api/admin/upload-event-image', {
+                method: 'POST',
+                token,
+                body: {
+                    event_id: selectedEventId,
+                    filename: compressed.filename,
+                    contentType: compressed.contentType,
+                    dataBase64: compressed.dataBase64
+                }
+            });
+            if (out?.url) uploadedUrls.push(out.url);
+        }
+
+        eventGalleryImages = [...eventGalleryImages, ...uploadedUrls];
+        await persistEventGalleryImages();
+        renderEventGalleryImages();
+        if (eventGalleryImagesInput) eventGalleryImagesInput.value = '';
+        alert(`${uploadedUrls.length} event image${uploadedUrls.length !== 1 ? 's' : ''} uploaded successfully.`);
+    } catch (error) {
+        console.error('Error uploading event gallery images:', error);
+        alert(`Failed to upload event images: ${error?.message || error}`);
+    } finally {
+        if (uploadEventGalleryImagesBtn) {
+            uploadEventGalleryImagesBtn.disabled = false;
+            uploadEventGalleryImagesBtn.textContent = 'Upload Event Images';
+        }
+    }
+}
+
+async function saveWinners() {
+    if (!selectedEventId) {
+        alert('Please select an event first');
+        return;
+    }
+
+    const payload = collectWinnerPayload();
+    if (!payload.winners.length && !payload.gallery_images.length && !payload.gallery_enabled) {
+        alert('Please add at least one winner or upload at least one event image before saving.');
+        return;
+    }
+
+    const invalidEntry = payload.winners.find((winner) => winner.image_url && !/^https?:\/\//i.test(winner.image_url));
+    if (invalidEntry) {
+        alert('Winner image URLs must start with http:// or https://');
+        return;
+    }
+
+    try {
+        const client = await window.waitForSupabaseClient();
+        const { data: sessionData } = await client.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        if (saveWinnersBtn) {
+            saveWinnersBtn.disabled = true;
+            saveWinnersBtn.textContent = 'Saving...';
+        }
+
+        const data = await apiRequest('/api/admin/event-results', {
+            method: 'POST',
+            token,
+            body: payload
+        });
+
+        selectedEventResults = data?.result || payload;
+        alert('Winners saved successfully.');
+    } catch (error) {
+        console.error('Error saving winners:', error);
+        alert(`Failed to save winners: ${error?.message || error}`);
+    } finally {
+        if (saveWinnersBtn) {
+            saveWinnersBtn.disabled = false;
+            saveWinnersBtn.textContent = 'Save Winners';
+        }
+    }
+}
+
+async function persistEventGalleryImages() {
+    if (!selectedEventId) return;
+
+    const client = await window.waitForSupabaseClient();
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Not authenticated');
+
+    const data = await apiRequest('/api/admin/event-results', {
+        method: 'POST',
+        token,
+        body: {
+            event_id: selectedEventId,
+            gallery_enabled: !!winnerGalleryEnabledInput?.checked,
+            gallery_images: eventGalleryImages,
+            winners: Array.isArray(selectedEventResults?.winners) ? selectedEventResults.winners : []
+        }
+    });
+
+    selectedEventResults = data?.result || selectedEventResults;
 }
 
 if (eventFlyerInput && eventFlyerPreview) {
@@ -1084,7 +1468,13 @@ addEventForm.addEventListener('submit', async (e) => {
         }
 
         // 1. Create event via admin API (service role; secure)
-        const payload = { title, description, date, flyer_url };
+        const payload = {
+            title,
+            description,
+            date,
+            flyer_url,
+            gallery_enabled: !!eventGalleryEnabledInput?.checked
+        };
         const out = await apiRequest('/api/admin/events', { method: 'POST', token, body: payload });
         const newEvent = out?.event;
         if (!newEvent || !newEvent.id) {
@@ -1106,6 +1496,18 @@ addEventForm.addEventListener('submit', async (e) => {
 
             await apiRequest('/api/admin/questions', { method: 'POST', token, body: { questions: questionsPayload } });
             questionsCreated = tempEventQuestions.length;
+        }
+
+        if (payload.gallery_enabled) {
+            await apiRequest('/api/admin/event-results', {
+                method: 'POST',
+                token,
+                body: {
+                    event_id: newEvent.id,
+                    gallery_enabled: true,
+                    winners: []
+                }
+            });
         }
 
         // Show success message
@@ -1985,9 +2387,14 @@ async function loadResponseCount(eventId) {
 // Select event and load responses
 async function selectEvent(eventId, eventTitle, itemEl) {
     selectedEventId = eventId;
+    selectedEventResults = null;
     noSelection.style.display = 'none';
     responsesSection.style.display = 'block';
     selectedEventTitle.textContent = eventTitle;
+    clearWinnerForm();
+    if (winnerManagementPanel) {
+        winnerManagementPanel.style.display = 'none';
+    }
     closePdfOptionsPanel();
     closeWordOptionsPanel();
     pdfColumnSelectionState = {};
@@ -2035,6 +2442,7 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         const questionData = await questionRes.json().catch(() => null);
         if (!questionRes.ok) throw new Error(questionData?.error || 'Failed to fetch questions');
         allQuestions = questionData?.questions || [];
+        await loadEventResults(eventId);
 
         // Show questions immediately, even if response loading fails later.
         displayQuestions(allQuestions);
@@ -2057,6 +2465,8 @@ async function selectEvent(eventId, eventTitle, itemEl) {
 
         // Display responses even if empty or unavailable.
         displayResponses(allResponses);
+        populateWinnerResponseOptions();
+        fillWinnerForm(selectedEventResults);
         renderPdfPreview();
 
         // Update response count
@@ -2068,12 +2478,18 @@ async function selectEvent(eventId, eventTitle, itemEl) {
         }
     } catch (error) {
         console.error('Error loading event details:', error);
+        allResponses = [];
         allQuestions = [];
+        populateWinnerResponseOptions();
+        fillWinnerForm(selectedEventResults);
         renderPdfOptionsPanel();
         renderWordOptionsPanel();
         renderPdfPreview();
         displayQuestions([]);
         responsesTable.innerHTML = '<div class="error">Failed to load responses</div>';
+        if (winnerManagementPanel) {
+            winnerManagementPanel.style.display = 'block';
+        }
         if (addQuestionBtn) {
             addQuestionBtn.disabled = true;
         }
@@ -2278,6 +2694,43 @@ if (wordBlankColumnsList && !wordBlankColumnsList.__bound) {
 }
 
 // 🔹 EXPORT HANDLERS INITIALIZATION
+if (saveWinnersBtn && !saveWinnersBtn.__bound) {
+    saveWinnersBtn.__bound = true;
+    saveWinnersBtn.addEventListener('click', saveWinners);
+}
+
+getWinnerInputs().forEach(({ rank, responseInput }) => {
+    if (!responseInput || responseInput.__bound) return;
+    responseInput.__bound = true;
+    responseInput.addEventListener('change', () => syncWinnerNameFromResponse(rank));
+});
+
+if (uploadEventGalleryImagesBtn && !uploadEventGalleryImagesBtn.__bound) {
+    uploadEventGalleryImagesBtn.__bound = true;
+    uploadEventGalleryImagesBtn.addEventListener('click', uploadEventGalleryImages);
+}
+
+if (eventGalleryImagesList && !eventGalleryImagesList.__bound) {
+    eventGalleryImagesList.__bound = true;
+    eventGalleryImagesList.addEventListener('click', async (event) => {
+        const button = event.target.closest('.remove-event-gallery-image-btn');
+        if (!button) return;
+        const index = Number(button.dataset.index);
+        if (Number.isNaN(index) || index < 0 || index >= eventGalleryImages.length) return;
+        const removed = eventGalleryImages[index];
+        eventGalleryImages.splice(index, 1);
+        renderEventGalleryImages();
+        try {
+            await persistEventGalleryImages();
+        } catch (error) {
+            console.error('Error removing event gallery image:', error);
+            eventGalleryImages.splice(index, 0, removed);
+            renderEventGalleryImages();
+            alert(`Failed to remove event image: ${error?.message || error}`);
+        }
+    });
+}
+
 function initializeExportHandlers() {
     console.log('🔧 Initializing export handlers...');
 
