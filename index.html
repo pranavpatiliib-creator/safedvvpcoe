@@ -8,12 +8,24 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/preloader.css">
+
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 
-<body>
+<body class="loading">
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="preloader-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+        </div>
+        <div class="preloader-content">
+            <h1 class="brand-text-loader">STUDENT ASSOCIATION FIRST YEAR </span></h1>
+        </div>
+    </div>
 
     <!-- Navbar -->
     <header>
@@ -63,7 +75,8 @@
             <div class="vmd-heading">
                 <span class="vmd-eyebrow">Department ethos</span>
                 <h2 class="vmd-title">Our Foundation</h2>
-                <p class="vmd-subtitle">Guiding principles that shape how we teach, mentor, and prepare first-year engineers.</p>
+                <p class="vmd-subtitle">Guiding principles that shape how we teach, mentor, and prepare first-year
+                    engineers.</p>
             </div>
 
             <div class="vmd-cards">
@@ -143,7 +156,8 @@
                 <h3>Connect With Us</h3>
                 <p>Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
                 <p><a href="mailto:pdvvpcoe@gmail.com">pdvvpcoe@gmail.com</a></p>
-                <p><a href="https://instagram.com/pdvvpcoe.safe" target="_blank" rel="noopener noreferrer">@pdvvpcoe.safe</a></p>
+                <p><a href="https://instagram.com/pdvvpcoe.safe" target="_blank"
+                        rel="noopener noreferrer">@pdvvpcoe.safe</a></p>
             </div>
 
         </div>
@@ -173,7 +187,9 @@
         function toggleMenu() {
             document.getElementById("navLinks").classList.toggle("active");
         }
+
     </script>
+    <script src="../preloader.js"></script>
 
 </body>
 

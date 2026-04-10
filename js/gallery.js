@@ -31,6 +31,23 @@ function formatWinnerRank(rank) {
     return `${value || ''} Prize`.trim();
 }
 
+function buildImageSlideshowMarkup(images, title, slideshowId) {
+    return `
+        <div class="event-slideshow" data-slideshow-id="${escapeHtml(slideshowId)}">
+            <div class="event-slideshow-frame">
+                <button type="button" class="slideshow-nav prev" data-direction="-1" aria-label="Previous image">‹</button>
+                <img class="event-slideshow-image" src="${escapeHtml(images[0])}" alt="${escapeHtml(title)} highlight image">
+                <button type="button" class="slideshow-nav next" data-direction="1" aria-label="Next image">›</button>
+            </div>
+            <div class="slideshow-dots">
+                ${images.map((_, index) => `
+                    <button type="button" class="slideshow-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Go to image ${index + 1}"></button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 async function loadGalleryResults() {
     if (!galleryResults) return;
 
@@ -70,25 +87,25 @@ async function loadGalleryResults() {
         }
 
         galleryResults.innerHTML = galleryItems.map(({ event, result }) => `
-            <section class="gallery-event-block">
+            <section class="gallery-event-block" data-images='${escapeHtml(JSON.stringify(result.gallery_images || []))}'>
                 <div class="gallery-event-header">
                     <h3 class="gallery-event-title">${escapeHtml(event.title)}</h3>
                     <p class="gallery-event-date">${new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div class="winners-showcase">
-                    ${Array.isArray(result.gallery_images) && result.gallery_images.length ? `
-                        <div class="winners-showcase-image-wrap">
-                            <img class="winners-showcase-image" src="${escapeHtml(result.gallery_images[0])}" alt="${escapeHtml(event.title)}">
-                        </div>
-                    ` : ''}
                     ${Array.isArray(result.winners) && result.winners.length ? `
                         <div class="winner-podium">
                             ${buildWinnerPodiumMarkup(result.winners)}
                         </div>
                     ` : ''}
+                    ${Array.isArray(result.gallery_images) && result.gallery_images.length
+                        ? buildImageSlideshowMarkup(result.gallery_images, event.title, `gallery-${event.id}`)
+                        : ''}
                 </div>
             </section>
         `).join('');
+
+        bindGallerySlideshows();
     } catch (error) {
         console.error('Error loading gallery:', error);
         galleryResults.innerHTML = '<div class="error">Failed to load winners gallery.</div>';
@@ -96,6 +113,53 @@ async function loadGalleryResults() {
 }
 
 document.addEventListener('DOMContentLoaded', loadGalleryResults);
+
+function bindGallerySlideshows() {
+    document.querySelectorAll('.event-slideshow[data-slideshow-id]').forEach((slideshow) => {
+        const slides = Array.from(slideshow.querySelectorAll('.slideshow-dot'));
+        const imageEl = slideshow.querySelector('.event-slideshow-image');
+        const images = slides.map((_, index) => {
+            const eventBlock = slideshow.closest('.gallery-event-block');
+            const data = eventBlock?.dataset.images;
+            if (!data) return null;
+            try {
+                return JSON.parse(data)[index] || null;
+            } catch {
+                return null;
+            }
+        }).filter(Boolean);
+
+        if (!imageEl || !images.length) return;
+
+        let currentIndex = 0;
+        const renderSlide = () => {
+            imageEl.src = images[currentIndex];
+            slides.forEach((dot, index) => dot.classList.toggle('active', index === currentIndex));
+        };
+
+        slideshow.querySelectorAll('.slideshow-nav').forEach((button) => {
+            button.addEventListener('click', () => {
+                const direction = Number(button.dataset.direction || '0');
+                currentIndex = (currentIndex + direction + images.length) % images.length;
+                renderSlide();
+            });
+        });
+
+        slides.forEach((dot) => {
+            dot.addEventListener('click', () => {
+                currentIndex = Number(dot.dataset.index || '0');
+                renderSlide();
+            });
+        });
+
+        if (images.length > 1) {
+            window.setInterval(() => {
+                currentIndex = (currentIndex + 1) % images.length;
+                renderSlide();
+            }, 3800);
+        }
+    });
+}
 
 function buildWinnerPodiumMarkup(winners) {
     const winnerByRank = new Map(

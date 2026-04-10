@@ -19,6 +19,7 @@ let currentQuestions = [];
 let currentEventId = null;
 let registrationSubmitting = false;
 let currentEventResult = null;
+let eventImageSlideIndex = 0;
 
 function getRegistrationStorageKey(eventId) {
     return `event-registration-submitted:${String(eventId || '')}`;
@@ -204,16 +205,16 @@ function renderWinnersSection(registrationClosed) {
             <p>${escapeHtml(currentEvent?.title || 'This event')} highlights and top performers after the deadline.</p>
         </div>
         <div class="winners-showcase">
-            ${galleryImages[0]
-            ? `<div class="winners-showcase-image-wrap">
-                    <img class="winners-showcase-image" src="${escapeHtml(galleryImages[0])}" alt="${escapeHtml(currentEvent?.title || 'Event')}">
-               </div>`
-            : ''}
             ${winners.length ? `<div class="winner-podium">
                 ${buildWinnerPodiumMarkup(winners)}
             </div>` : ''}
+            ${galleryImages.length ? buildImageSlideshowMarkup(galleryImages, currentEvent?.title || 'Event') : ''}
         </div>
     `;
+
+    if (galleryImages.length) {
+        bindImageSlideshow(eventWinnersSection, galleryImages, currentEvent?.title || 'Event');
+    }
 }
 
 function buildWinnerPodiumMarkup(winners) {
@@ -245,6 +246,68 @@ function formatWinnerRank(rank) {
     if (value === 2) return '2nd Prize';
     if (value === 3) return '3rd Prize';
     return `${value || ''} Prize`.trim();
+}
+
+function buildImageSlideshowMarkup(images, title) {
+    const safeTitle = escapeHtml(title);
+    return `
+        <div class="event-slideshow" data-slideshow="event">
+            <div class="event-slideshow-frame">
+                <button type="button" class="slideshow-nav prev" data-direction="-1" aria-label="Previous image">‹</button>
+                <img class="event-slideshow-image" src="${escapeHtml(images[0])}" alt="${safeTitle} highlight image">
+                <button type="button" class="slideshow-nav next" data-direction="1" aria-label="Next image">›</button>
+            </div>
+            <div class="slideshow-dots">
+                ${images.map((_, index) => `
+                    <button type="button" class="slideshow-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Go to image ${index + 1}"></button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function bindImageSlideshow(container, images, title) {
+    const slideshow = container.querySelector('[data-slideshow="event"]');
+    if (!slideshow) return;
+
+    const imageEl = slideshow.querySelector('.event-slideshow-image');
+    const dots = Array.from(slideshow.querySelectorAll('.slideshow-dot'));
+    const safeTitle = escapeHtml(title);
+
+    const renderSlide = () => {
+        if (!imageEl) return;
+        const imageUrl = images[eventImageSlideIndex] || images[0];
+        imageEl.src = imageUrl;
+        imageEl.alt = `${safeTitle} highlight image ${eventImageSlideIndex + 1}`;
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === eventImageSlideIndex);
+        });
+    };
+
+    slideshow.querySelectorAll('.slideshow-nav').forEach((button) => {
+        button.addEventListener('click', () => {
+            const direction = Number(button.dataset.direction || '0');
+            eventImageSlideIndex = (eventImageSlideIndex + direction + images.length) % images.length;
+            renderSlide();
+        });
+    });
+
+    dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+            eventImageSlideIndex = Number(dot.dataset.index || '0');
+            renderSlide();
+        });
+    });
+
+    if (images.length > 1) {
+        window.clearInterval(window.__eventSlideshowTimer);
+        window.__eventSlideshowTimer = window.setInterval(() => {
+            eventImageSlideIndex = (eventImageSlideIndex + 1) % images.length;
+            renderSlide();
+        }, 3500);
+    }
+
+    renderSlide();
 }
 
 function createFormField(question, index) {
