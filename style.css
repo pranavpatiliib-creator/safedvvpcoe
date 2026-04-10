@@ -171,94 +171,203 @@ body {
 
 /* 🔹 SECTION */
 .vmd {
-    padding: 100px 20px;
-    text-align: center;
-    background: #f5f7fa;
-    /* light clean background */
+    padding: 110px 20px;
+    background:
+        radial-gradient(circle at top left, rgba(8, 145, 178, 0.12), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(200, 155, 60, 0.18), transparent 26%),
+        linear-gradient(180deg, #f7fafc 0%, #eef4fb 100%);
 }
 
 /* 🔹 TITLE */
-.vmd-title {
-    font-size: 38px;
+.vmd-shell {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 28px;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.65);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+.vmd-heading {
+    max-width: 720px;
+    margin: 0 auto 56px;
+    text-align: center;
+}
+
+.vmd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    margin-bottom: 18px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.06);
+    color: #9a6c14;
+    font-size: 12px;
     font-weight: 700;
-    color: #1a2a44;
-    margin-bottom: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.vmd-title {
+    font-size: clamp(2.4rem, 4vw, 4rem);
+    line-height: 1.05;
+    font-weight: 700;
+    color: #12284c;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
 }
 
 .vmd-subtitle {
-    color: #666;
-    font-size: 16px;
-    margin-bottom: 50px;
-}
-
-/* SUBTEXT */
-.vmd-subtitle {
-    color: #666;
-    margin-bottom: 50px;
-    font-size: 16px;
+    color: #53627b;
+    font-size: 1.05rem;
+    line-height: 1.8;
 }
 
 /* 🔹 UNDERLINE */
 .vmd-title::after {
     content: "";
-    width: 60px;
-    height: 3px;
-    background: #c89b3c;
     display: block;
-    margin: 10px auto;
+    width: 88px;
+    height: 4px;
+    margin: 18px auto 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c89b3c 0%, #e5c973 100%);
 }
 
 /* 🔹 CARDS */
 .vmd-cards {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 26px;
 }
 
 /* 🔹 CARD DESIGN */
 .vmd-card {
-    width: 350px;
-    padding: 35px;
-    border-radius: 10px;
-
-    background: #ffffff;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-
+    position: relative;
+    min-height: 100%;
+    padding: 32px 30px 30px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 248, 252, 0.96) 100%);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
     text-align: left;
-    transition: 0.3s;
+    overflow: hidden;
+    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
 }
 
 /* 🔹 ICON CIRCLE */
-.vmd-card .icon {
-    width: 50px;
-    height: 50px;
-    background: #eef2f7;
-    border-radius: 50%;
+.vmd-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5px;
+    background: var(--card-accent, linear-gradient(90deg, #1d4ed8, #38bdf8));
+}
+
+.vmd-card-top {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.vmd-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
-    font-size: 20px;
+    background: var(--icon-bg, linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%));
+    color: #12284c;
+    font-size: 1.2rem;
+    font-weight: 700;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.vmd-chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.06);
+    color: #42526b;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 /* 🔹 TITLE */
 .vmd-card h3 {
-    font-size: 22px;
-    color: #1a2a44;
-    margin-bottom: 15px;
+    margin-bottom: 14px;
+    color: #12284c;
+    font-size: 1.85rem;
+    line-height: 1.1;
 }
 
 /* 🔹 TEXT */
 .vmd-card p {
-    font-size: 15px;
-    line-height: 1.7;
-    color: #555;
+    color: #55657d;
+    font-size: 1rem;
+    line-height: 1.95;
 }
 
 /* 🔹 HOVER (VERY SUBTLE) */
 .vmd-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.14);
+    border-color: rgba(29, 78, 216, 0.18);
+}
+
+.vmd-card-vision {
+    --card-accent: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 100%);
+    --icon-bg: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.vmd-card-mission {
+    --card-accent: linear-gradient(90deg, #d97706 0%, #facc15 100%);
+    --icon-bg: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.vmd-card-development {
+    --card-accent: linear-gradient(90deg, #0f766e 0%, #34d399 100%);
+    --icon-bg: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+}
+
+@media (max-width: 1080px) {
+    .vmd-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .vmd {
+        padding: 80px 16px;
+    }
+
+    .vmd-shell {
+        padding: 22px;
+        border-radius: 24px;
+    }
+
+    .vmd-heading {
+        margin-bottom: 34px;
+    }
+
+    .vmd-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .vmd-card {
+        padding: 28px 22px 24px;
+    }
+
+    .vmd-card h3 {
+        font-size: 1.55rem;
+    }
 }
 
 /* 🔹 SECTIONS */
@@ -942,9 +1051,9 @@ section {
    ADMIN SECTION
    ========================================== */
 .admin-section {
-    padding: 100px 20px 40px;
+    padding: 24px 20px 40px;
     background: #f5f7fa;
-    margin-top: 80px;
+    margin-top: 84px;
     min-height: 70vh;
 }
 
@@ -963,7 +1072,7 @@ section {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     height: fit-content;
     position: sticky;
-    top: 100px;
+    top: 108px;
 }
 
 .sidebar-header {
@@ -1566,5 +1675,466 @@ tbody tr:hover {
         width: 32px;
         height: 32px;
         font-size: 16px;
+    }
+}
+
+/* ==========================================
+   FEES PAGE
+   ========================================== */
+.fees-page {
+    background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 24%),
+        radial-gradient(circle at left center, rgba(245, 158, 11, 0.12), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
+    color: #132238;
+    min-height: 100vh;
+    padding-top: 90px;
+}
+
+.fees-hero,
+.fees-process,
+.fees-form-preview,
+.fees-guidance,
+.fees-help {
+    padding: 34px 20px 48px;
+}
+
+.fees-hero-inner,
+.fees-section-heading,
+.fees-guidance-grid,
+.fees-help-box,
+.fees-preview-card,
+.fees-steps {
+    max-width: 1240px;
+    margin: 0 auto;
+}
+
+.fees-hero-inner {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 28px;
+    align-items: stretch;
+}
+
+.fees-hero-copy,
+.fees-question-card,
+.fees-preview-card,
+.fees-info-card,
+.fees-help-box {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+.fees-hero-copy {
+    padding: 42px;
+}
+
+.fees-eyebrow,
+.fees-section-label,
+.fees-question-tag,
+.fees-info-label,
+.fees-preview-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(14, 116, 144, 0.08);
+    color: #0e7490;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.fees-hero-copy h1 {
+    margin: 18px 0 18px;
+    color: #10254a;
+    font-size: clamp(2.5rem, 5vw, 4.6rem);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+}
+
+.fees-hero-copy p,
+.fees-section-heading p,
+.fees-question-card p,
+.fees-info-card p,
+.fees-help-box p,
+.fees-step p,
+.fees-preview-note,
+.fees-warning-strip p {
+    color: #56677f;
+    font-size: 1rem;
+    line-height: 1.85;
+}
+
+.fees-hero-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+}
+
+.fees-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 0 22px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.fees-btn:hover {
+    transform: translateY(-2px);
+}
+
+.fees-btn-primary {
+    background: linear-gradient(135deg, #0f766e 0%, #22c55e 100%);
+    color: #fff;
+    box-shadow: 0 16px 28px rgba(15, 118, 110, 0.2);
+}
+
+.fees-btn-secondary {
+    background: #e8f1fb;
+    color: #12355b;
+    border: 1px solid rgba(18, 53, 91, 0.1);
+}
+
+.fees-question-card {
+    padding: 34px;
+    height: 100%;
+}
+
+.fees-question-card h2 {
+    margin: 18px 0 12px;
+    color: #10254a;
+    font-size: 2rem;
+    line-height: 1.15;
+}
+
+.fees-answer-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.fees-answer {
+    padding: 20px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+    border: 1px solid rgba(125, 145, 173, 0.18);
+}
+
+.fees-answer-link {
+    display: block;
+    text-decoration: none;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.fees-answer-link:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1);
+    border-color: rgba(14, 116, 144, 0.24);
+}
+
+.fees-answer h3,
+.fees-step h3,
+.fees-info-card h3,
+.fees-preview-card h3,
+.fees-type-box h4 {
+    color: #10254a;
+}
+
+.fees-answer h3 {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.fees-answer-cta {
+    display: inline-flex;
+    margin-top: 12px;
+    color: #0e7490;
+    font-weight: 700;
+}
+
+.fees-question-instruction {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: linear-gradient(90deg, #fff7ed 0%, #fefce8 100%);
+    border: 1px solid rgba(234, 179, 8, 0.18);
+}
+
+.fees-question-instruction p {
+    color: #7c2d12;
+    font-size: 0.96rem;
+    line-height: 1.8;
+}
+
+.fees-section-heading {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.fees-section-heading h2 {
+    margin: 16px 0 12px;
+    color: #10254a;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.08;
+}
+
+.fees-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.fees-step {
+    padding: 28px 24px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+}
+
+.fees-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.fees-step h3 {
+    margin-bottom: 10px;
+    font-size: 1.15rem;
+}
+
+.fees-preview-card {
+    padding: 32px;
+}
+
+.fees-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.fees-preview-header h3 {
+    margin-top: 14px;
+    font-size: 1.7rem;
+    line-height: 1.2;
+}
+
+.fees-preview-note {
+    max-width: 360px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: #fff4f2;
+    color: #b42318;
+    border: 1px solid rgba(180, 35, 24, 0.12);
+}
+
+.fees-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.fees-preview-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.fees-preview-field label {
+    color: #253a59;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.fees-preview-field span {
+    min-height: 58px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: #f8fbff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #53627b;
+    line-height: 1.5;
+}
+
+.fees-type-box {
+    margin-top: 24px;
+    padding: 24px;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #f5fbf8 0%, #edf8f2 100%);
+    border: 1px solid rgba(34, 197, 94, 0.12);
+}
+
+.fees-type-box h4 {
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+}
+
+.fees-type-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.fees-type-options span {
+    padding: 11px 16px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(16, 37, 74, 0.1);
+    color: #234065;
+    font-size: 0.96rem;
+    font-weight: 500;
+}
+
+.fees-payment-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: end;
+    margin-top: 24px;
+}
+
+.fees-preview-field-wide span {
+    min-height: 72px;
+}
+
+.fees-preview-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.fees-warning-strip {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border-radius: 18px;
+    background: linear-gradient(90deg, #fff7ed 0%, #fef2f2 100%);
+    border: 1px solid rgba(234, 88, 12, 0.12);
+}
+
+.fees-guidance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.fees-info-card {
+    padding: 30px;
+}
+
+.fees-info-card h3 {
+    margin: 14px 0 14px;
+    font-size: 1.35rem;
+}
+
+.fees-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #53627b;
+    line-height: 1.85;
+}
+
+.fees-text-link {
+    display: inline-block;
+    margin-top: 18px;
+    color: #0e7490;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.fees-help-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 34px;
+}
+
+.fees-help-box h2 {
+    margin: 14px 0 10px;
+    color: #10254a;
+    font-size: 2rem;
+}
+
+@media (max-width: 1100px) {
+    .fees-hero-inner,
+    .fees-guidance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fees-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fees-preview-grid,
+    .fees-payment-row {
+        grid-template-columns: 1fr;
+    }
+
+    .fees-help-box {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .fees-page {
+        padding-top: 76px;
+    }
+
+    .fees-hero,
+    .fees-process,
+    .fees-form-preview,
+    .fees-guidance,
+    .fees-help {
+        padding: 22px 16px 34px;
+    }
+
+    .fees-hero-copy,
+    .fees-question-card,
+    .fees-preview-card,
+    .fees-info-card,
+    .fees-help-box {
+        padding: 24px;
+        border-radius: 22px;
+    }
+
+    .fees-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .fees-preview-header {
+        flex-direction: column;
+    }
+
+    .fees-question-card h2,
+    .fees-help-box h2 {
+        font-size: 1.6rem;
+    }
+
+    .fees-preview-header h3 {
+        font-size: 1.35rem;
+    }
+
+    .fees-btn {
+        width: 100%;
     }
 }
