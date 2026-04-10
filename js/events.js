@@ -54,15 +54,14 @@ async function loadEvents() {
         eventsContainer.innerHTML = '<div class="loading">Loading events...</div>';
 
         const [eventsResponse, resultsResponse] = await Promise.all([
-            fetch('/api/public-events', { cache: 'no-store' }),
-            fetch('/api/public-event-results', { cache: 'no-store' })
+            fetch('/api/public-events?include_results=1', { cache: 'no-store' }),
+            Promise.resolve({ ok: true, json: async () => null })
         ]);
         const eventsData = await eventsResponse.json().catch(() => null);
         const resultsData = await resultsResponse.json().catch(() => null);
         if (!eventsResponse.ok) throw new Error(eventsData?.error || 'Failed to fetch events');
-        if (!resultsResponse.ok) throw new Error(resultsData?.error || 'Failed to fetch event winners');
 
-        const resultsByEventId = new Map((resultsData?.results || []).map((item) => [String(item.event_id), item]));
+        const resultsByEventId = new Map((eventsData?.results || []).map((item) => [String(item.event_id), item]));
         allEvents = (eventsData?.events || []).map((event) => ({
             ...event,
             result: resultsByEventId.get(String(event.id)) || null

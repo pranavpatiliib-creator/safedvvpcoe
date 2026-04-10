@@ -1,4 +1,4 @@
-const { requireAdmin, readJson, json, supabaseFetch } = require('./_auth');
+const { requireAdmin, readJson, json, supabaseFetch } = require('../../lib/admin-auth');
 
 function sanitizePayload(body = {}) {
   return {

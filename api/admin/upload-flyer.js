@@ -1,4 +1,4 @@
-const { requireAdmin, readJson, json, supabaseFetch } = require('./_auth');
+const { requireAdmin, readJson, json, supabaseFetch } = require('../../lib/admin-auth');
 
 function safeFilename(name) {
   const base = String(name || 'flyer').trim().toLowerCase();
@@ -20,6 +20,8 @@ module.exports = async function handler(req, res) {
     const filename = safeFilename(body?.filename || 'flyer.png');
     const contentType = body?.contentType || 'application/octet-stream';
     const dataBase64 = body?.dataBase64;
+    const folder = String(body?.folder || 'flyers').trim().replace(/[^a-z0-9/_-]/gi, '') || 'flyers';
+    const eventId = body?.event_id ? String(body.event_id).replace(/[^a-z0-9_-]/gi, '') : '';
 
     if (!dataBase64 || typeof dataBase64 !== 'string') {
       json(res, 400, { error: 'Missing file data' });
@@ -27,7 +29,8 @@ module.exports = async function handler(req, res) {
     }
 
     const ext = (filename.split('.').pop() || 'png').replace(/[^a-z0-9]/g, '') || 'png';
-    const objectPath = `${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
+    const objectPrefix = folder === 'events' && eventId ? `${folder}/${eventId}` : folder;
+    const objectPath = `${objectPrefix}/${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
     const objectUrl = `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/flyers/${encodeURIComponent(objectPath)}`;
 
     const fileBuffer = Buffer.from(dataBase64, 'base64');
@@ -40,11 +43,11 @@ module.exports = async function handler(req, res) {
         'x-upsert': 'true'
       },
       body: fileBuffer
-    }, 'Flyer upload');
+    }, folder === 'events' ? 'Event image upload' : 'Flyer upload');
 
     if (!uploadRes.ok) {
       const t = await uploadRes.text().catch(() => '');
-      json(res, 400, { error: 'Flyer upload failed', details: t || uploadRes.statusText });
+      json(res, 400, { error: folder === 'events' ? 'Event image upload failed' : 'Flyer upload failed', details: t || uploadRes.statusText });
       return;
     }
 
@@ -55,4 +58,3 @@ module.exports = async function handler(req, res) {
     json(res, 500, { error: e?.message || String(e) });
   }
 };
-

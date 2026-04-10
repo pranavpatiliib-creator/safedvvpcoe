@@ -76,13 +76,12 @@ async function loadEventDetails() {
     try {
         console.log('Loading event details for event_id:', eventId);
         const [eventRes, eventResultRes] = await Promise.all([
-            fetch('/api/public-events', { cache: 'no-store' }),
-            fetch(`/api/public-event-results?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
+            fetch('/api/public-events?include_results=1', { cache: 'no-store' }),
+            Promise.resolve({ ok: true, json: async () => null })
         ]);
         const eventData = await eventRes.json().catch(() => null);
-        const eventResultData = await eventResultRes.json().catch(() => null);
+        const eventResultData = eventData;
         if (!eventRes.ok) throw new Error(eventData?.error || 'Failed to fetch events');
-        if (!eventResultRes.ok) throw new Error(eventResultData?.error || 'Failed to fetch event winners');
 
         const events = eventData?.events || [];
         const matched = events.find((item) => String(item.id) === String(eventId));
@@ -92,7 +91,7 @@ async function loadEventDetails() {
         }
 
         currentEvent = matched;
-        currentEventResult = eventResultData?.result || null;
+        currentEventResult = (eventResultData?.results || []).find((item) => String(item.event_id) === String(eventId)) || null;
         const registrationClosed = isRegistrationClosed(currentEvent.date);
 
         const formattedDate = new Date(currentEvent.date).toLocaleDateString('en-US', {

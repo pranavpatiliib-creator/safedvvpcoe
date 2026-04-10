@@ -36,14 +36,13 @@ async function loadGalleryResults() {
 
     try {
         const [eventsResponse, resultsResponse] = await Promise.all([
-            fetch('/api/public-events', { cache: 'no-store' }),
-            fetch('/api/public-event-results', { cache: 'no-store' })
+            fetch('/api/public-events?include_results=1', { cache: 'no-store' }),
+            Promise.resolve({ ok: true, json: async () => null })
         ]);
         const eventsData = await eventsResponse.json().catch(() => null);
-        const resultsData = await resultsResponse.json().catch(() => null);
+        const resultsData = eventsData;
 
         if (!eventsResponse.ok) throw new Error(eventsData?.error || 'Failed to fetch events');
-        if (!resultsResponse.ok) throw new Error(resultsData?.error || 'Failed to fetch winner gallery');
 
         const eventsById = new Map((eventsData?.events || []).map((event) => [String(event.id), event]));
         const galleryItems = (resultsData?.results || [])

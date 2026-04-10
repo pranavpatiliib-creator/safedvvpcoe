@@ -1,4 +1,4 @@
-const { json, normalizeEnvValue, supabaseFetch } = require('./admin/_auth');
+const { json, normalizeEnvValue, supabaseFetch } = require('../lib/admin-auth');
 
 module.exports = async function handler(req, res) {
   try {

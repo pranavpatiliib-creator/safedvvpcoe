@@ -1057,9 +1057,12 @@ async function loadEventResults(eventId) {
     selectedEventResults = null;
 
     try {
-        const response = await fetch(`/api/public-event-results?event_id=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
-        const data = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(data?.error || 'Failed to load event results');
+        const client = await window.waitForSupabaseClient();
+        const { data: sessionData } = await client.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        const data = await apiRequest(`/api/admin/events?action=results&event_id=${encodeURIComponent(eventId)}`, { token });
 
         selectedEventResults = data?.result || null;
         fillWinnerForm(selectedEventResults);
@@ -1172,11 +1175,12 @@ async function uploadEventGalleryImages() {
         const uploadedUrls = [];
         for (const file of files) {
             const compressed = await compressImageFile(file, 300 * 1024);
-            const out = await apiRequest('/api/admin/upload-event-image', {
+            const out = await apiRequest('/api/admin/upload-flyer', {
                 method: 'POST',
                 token,
                 body: {
                     event_id: selectedEventId,
+                    folder: 'events',
                     filename: compressed.filename,
                     contentType: compressed.contentType,
                     dataBase64: compressed.dataBase64
@@ -1230,7 +1234,7 @@ async function saveWinners() {
             saveWinnersBtn.textContent = 'Saving...';
         }
 
-        const data = await apiRequest('/api/admin/event-results', {
+        const data = await apiRequest('/api/admin/events?action=results', {
             method: 'POST',
             token,
             body: payload
@@ -1257,7 +1261,7 @@ async function persistEventGalleryImages() {
     const token = sessionData?.session?.access_token;
     if (!token) throw new Error('Not authenticated');
 
-    const data = await apiRequest('/api/admin/event-results', {
+    const data = await apiRequest('/api/admin/events?action=results', {
         method: 'POST',
         token,
         body: {
@@ -1499,7 +1503,7 @@ addEventForm.addEventListener('submit', async (e) => {
         }
 
         if (payload.gallery_enabled) {
-            await apiRequest('/api/admin/event-results', {
+            await apiRequest('/api/admin/events?action=results', {
                 method: 'POST',
                 token,
                 body: {

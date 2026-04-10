@@ -1,4 +1,4 @@
-const { json, normalizeEnvValue, readJson, supabaseFetch } = require('./admin/_auth');
+const { json, normalizeEnvValue, readJson, supabaseFetch } = require('../lib/admin-auth');
 
 function safeFilename(name) {
   const base = String(name || 'response-file').trim().toLowerCase();
