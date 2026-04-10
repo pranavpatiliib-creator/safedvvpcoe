@@ -75,30 +75,17 @@ async function loadGalleryResults() {
                     <h3 class="gallery-event-title">${escapeHtml(event.title)}</h3>
                     <p class="gallery-event-date">${new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
-                ${Array.isArray(result.gallery_images) && result.gallery_images.length ? `
-                    <div class="winners-grid" style="margin-bottom:20px;">
-                        ${result.gallery_images.map((url, index) => `
-                            <article class="winner-card">
-                                <img class="winner-card-image" src="${escapeHtml(url)}" alt="${escapeHtml(event.title)} image ${index + 1}">
-                            </article>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                <div class="winners-grid">
-                    ${result.winners
-                        .sort((a, b) => Number(a.rank) - Number(b.rank))
-                        .slice(0, 3)
-                        .map((winner) => `
-                            <article class="winner-card">
-                                ${winner.image_url
-                                    ? `<img class="winner-card-image" src="${escapeHtml(winner.image_url)}" alt="${escapeHtml(winner.name || `Winner ${winner.rank}`)}">`
-                                    : `<div class="winner-card-placeholder">${formatWinnerRank(winner.rank)}</div>`}
-                                <div class="winner-card-body">
-                                    <span class="winner-rank">${formatWinnerRank(winner.rank)}</span>
-                                    <h4 class="winner-name">${escapeHtml(winner.name || `Winner ${winner.rank}`)}</h4>
-                                </div>
-                            </article>
-                        `).join('')}
+                <div class="winners-showcase">
+                    ${Array.isArray(result.gallery_images) && result.gallery_images.length ? `
+                        <div class="winners-showcase-image-wrap">
+                            <img class="winners-showcase-image" src="${escapeHtml(result.gallery_images[0])}" alt="${escapeHtml(event.title)}">
+                        </div>
+                    ` : ''}
+                    ${Array.isArray(result.winners) && result.winners.length ? `
+                        <div class="winner-podium">
+                            ${buildWinnerPodiumMarkup(result.winners)}
+                        </div>
+                    ` : ''}
                 </div>
             </section>
         `).join('');
@@ -109,3 +96,32 @@ async function loadGalleryResults() {
 }
 
 document.addEventListener('DOMContentLoaded', loadGalleryResults);
+
+function buildWinnerPodiumMarkup(winners) {
+    const winnerByRank = new Map(
+        winners
+            .filter((winner) => winner?.name)
+            .sort((a, b) => Number(a.rank) - Number(b.rank))
+            .slice(0, 3)
+            .map((winner) => [Number(winner.rank), winner])
+    );
+    const displayOrder = [2, 1, 3];
+
+    return displayOrder.map((rank) => {
+        const winner = winnerByRank.get(rank);
+        if (!winner) return '';
+
+        return `
+            <article class="podium-card podium-rank-${rank}">
+                <div class="podium-medal medal-rank-${rank}">
+                    <div class="podium-medal-ribbon"></div>
+                    <div class="podium-medal-disc">${String(rank).padStart(2, '0')}</div>
+                    <div class="podium-laurel left"></div>
+                    <div class="podium-laurel right"></div>
+                </div>
+                <span class="winner-rank">${formatWinnerRank(rank)}</span>
+                <h4 class="winner-name">${escapeHtml(winner.name)}</h4>
+            </article>
+        `;
+    }).join('');
+}

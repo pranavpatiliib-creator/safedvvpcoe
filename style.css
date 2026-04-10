@@ -860,41 +860,121 @@ section {
     gap: 20px;
 }
 
-.winner-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 22px;
-    background: linear-gradient(180deg, #fff8eb 0%, #ffffff 100%);
-    border: 1px solid #f1e2b8;
-    box-shadow: 0 16px 30px rgba(148, 107, 29, 0.12);
+.winners-showcase {
+    display: grid;
+    gap: 24px;
 }
 
-.winner-card-image,
-.winner-card-placeholder {
+.winners-showcase-image-wrap {
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 209, 102, 0.5);
+    background: #ffffff;
+    box-shadow: 0 20px 38px rgba(15, 23, 42, 0.08);
+}
+
+.winners-showcase-image {
     display: block;
     width: 100%;
-    height: 280px;
-}
-
-.winner-card-image {
+    max-height: 360px;
     object-fit: cover;
-    background: #ffffff;
 }
 
-.winner-card-placeholder {
+.winner-podium {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.podium-card {
+    text-align: center;
+    padding: 12px 10px 4px;
+}
+
+.podium-rank-1 {
+    transform: translateY(-18px);
+}
+
+.podium-medal {
+    position: relative;
+    width: 170px;
+    max-width: 100%;
+    margin: 0 auto 18px;
+    padding-top: 22px;
+}
+
+.podium-medal-ribbon {
+    width: 44px;
+    height: 24px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, #b91c1c 0%, #ef4444 50%, #b91c1c 100%);
+    clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%);
+}
+
+.podium-medal-disc {
+    position: relative;
+    z-index: 2;
+    width: 92px;
+    height: 92px;
+    margin: -2px auto 0;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #fde68a 0%, #f8fafc 100%);
-    color: #8a5a12;
-    font-size: 1.05rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
+    box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.3), 0 12px 24px rgba(15, 23, 42, 0.12);
 }
 
-.winner-card-body {
-    padding: 18px;
+.podium-laurel {
+    position: absolute;
+    top: 18px;
+    width: 54px;
+    height: 112px;
+    border: 8px solid currentColor;
+    border-radius: 60% 60% 60% 60%;
+    opacity: 0.9;
+}
+
+.podium-laurel.left {
+    left: 16px;
+    border-right: none;
+    transform: rotate(-12deg);
+}
+
+.podium-laurel.right {
+    right: 16px;
+    border-left: none;
+    transform: rotate(12deg);
+}
+
+.medal-rank-1 {
+    color: #f4b400;
+}
+
+.medal-rank-1 .podium-medal-disc {
+    background: radial-gradient(circle at 30% 30%, #ffe38a 0%, #ffca28 45%, #e49a00 100%);
+    color: #ffffff;
+}
+
+.medal-rank-2 {
+    color: #c7cbd4;
+}
+
+.medal-rank-2 .podium-medal-disc {
+    background: radial-gradient(circle at 30% 30%, #f4f6fb 0%, #c9ced9 45%, #8c93a4 100%);
+    color: #5b6273;
+}
+
+.medal-rank-3 {
+    color: #d58a5b;
+}
+
+.medal-rank-3 .podium-medal-disc {
+    background: radial-gradient(circle at 30% 30%, #efc3a6 0%, #cf8a59 45%, #a85b2f 100%);
+    color: #fff6ee;
 }
 
 .winner-rank {
@@ -912,9 +992,11 @@ section {
 }
 
 .winner-name {
-    margin: 14px 0 0;
+    margin: 12px 0 0;
     color: #10203a;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.25;
 }
 
 .winner-management-panel {
@@ -995,9 +1077,9 @@ section {
     margin-top: 28px;
     padding: 28px;
     border-radius: 24px;
-    background: #fffdf6;
-    border: 1px solid #f4e3b2;
-    box-shadow: 0 18px 42px rgba(123, 93, 27, 0.12);
+    background: linear-gradient(180deg, #fffdfa 0%, #ffffff 100%);
+    border: 1px solid #f2dfab;
+    box-shadow: 0 18px 42px rgba(123, 93, 27, 0.1);
 }
 
 .event-winners-header {
@@ -1014,6 +1096,26 @@ section {
     margin: 8px 0 0;
     color: #526074;
     line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+    .winner-podium {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .podium-rank-1 {
+        order: -1;
+        transform: none;
+    }
+
+    .podium-card {
+        padding: 8px 0;
+    }
+
+    .podium-medal {
+        width: 150px;
+    }
 }
 
 .event-meta {

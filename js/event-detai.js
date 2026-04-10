@@ -177,7 +177,7 @@ function renderWinnersSection(registrationClosed) {
     if (!eventWinnersSection) return;
 
     const winners = Array.isArray(currentEventResult?.winners)
-        ? currentEventResult.winners.filter((winner) => winner?.name || winner?.image_url).sort((a, b) => Number(a.rank) - Number(b.rank)).slice(0, 3)
+        ? currentEventResult.winners.filter((winner) => winner?.name).sort((a, b) => Number(a.rank) - Number(b.rank)).slice(0, 3)
         : [];
     const galleryImages = Array.isArray(currentEventResult?.gallery_images)
         ? currentEventResult.gallery_images.filter(Boolean)
@@ -193,31 +193,42 @@ function renderWinnersSection(registrationClosed) {
     eventWinnersSection.innerHTML = `
         <div class="event-winners-header">
             <h2>Top Three Winners</h2>
-            <p>These winners are displayed after the event deadline for ${escapeHtml(currentEvent?.title || 'this event')}.</p>
+            <p>${escapeHtml(currentEvent?.title || 'This event')} highlights and top performers after the deadline.</p>
         </div>
-        ${galleryImages.length ? `
-            <div class="winners-grid" style="margin-bottom:20px;">
-                ${galleryImages.map((url, index) => `
-                    <article class="winner-card">
-                        <img class="winner-card-image" src="${escapeHtml(url)}" alt="${escapeHtml(currentEvent?.title || 'Event')} image ${index + 1}">
-                    </article>
-                `).join('')}
-            </div>
-        ` : ''}
-        ${winners.length ? `<div class="winners-grid">
-            ${winners.map((winner) => `
-                <article class="winner-card">
-                    ${winner.image_url
-                ? `<img class="winner-card-image" src="${escapeHtml(winner.image_url)}" alt="${escapeHtml(winner.name || `Winner ${winner.rank}`)}">`
-                : `<div class="winner-card-placeholder">Winner ${Number(winner.rank) || ''}</div>`}
-                    <div class="winner-card-body">
-                        <span class="winner-rank">${formatWinnerRank(winner.rank)}</span>
-                        <h3 class="winner-name">${escapeHtml(winner.name || `Winner ${winner.rank}`)}</h3>
-                    </div>
-                </article>
-            `).join('')}
-        </div>` : ''}
+        <div class="winners-showcase">
+            ${galleryImages[0]
+            ? `<div class="winners-showcase-image-wrap">
+                    <img class="winners-showcase-image" src="${escapeHtml(galleryImages[0])}" alt="${escapeHtml(currentEvent?.title || 'Event')}">
+               </div>`
+            : ''}
+            ${winners.length ? `<div class="winner-podium">
+                ${buildWinnerPodiumMarkup(winners)}
+            </div>` : ''}
+        </div>
     `;
+}
+
+function buildWinnerPodiumMarkup(winners) {
+    const winnerByRank = new Map(winners.map((winner) => [Number(winner.rank), winner]));
+    const displayOrder = [2, 1, 3];
+
+    return displayOrder.map((rank) => {
+        const winner = winnerByRank.get(rank);
+        if (!winner) return '';
+
+        return `
+            <article class="podium-card podium-rank-${rank}">
+                <div class="podium-medal medal-rank-${rank}">
+                    <div class="podium-medal-ribbon"></div>
+                    <div class="podium-medal-disc">${String(rank).padStart(2, '0')}</div>
+                    <div class="podium-laurel left"></div>
+                    <div class="podium-laurel right"></div>
+                </div>
+                <span class="winner-rank">${formatWinnerRank(rank)}</span>
+                <h3 class="winner-name">${escapeHtml(winner.name)}</h3>
+            </article>
+        `;
+    }).join('');
 }
 
 function formatWinnerRank(rank) {
