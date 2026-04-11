@@ -8,7 +8,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="/css/preloader.css">
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -18,456 +18,565 @@
     </style>
 </head>
 
-<body class="admin-auth-checking">
+<body class="loading">
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="preloader-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+        </div>
+        <div class="preloader-content">
+            <h1 class="brand-text-loader">STUDENT ASSOCIATION FIRST YEAR </span></h1>
+        </div>
+    </div>
 
-    <header>
-        <nav class="navbar">
 
-            <!-- 🔹 LOGO + TEXT -->
-            <a href="index.html" class="logo-container">
-                <img src="images/logo.jpeg" alt="logo">
-                <span>First Year Engineering</span>
-            </a>
+    <body class="admin-auth-checking">
 
-            <!-- 🔹 NAV LINKS -->
-            <ul class="nav-links" id="navLinks">
-                <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="faculty.html">Faculties</a></li>
-                <li><a href="association.html">Association</a></li>
-                <li><a href="events.html">Events</a></li>
-                <li><a href="gallery.html">Gallery</a></li>
-                <li><a href="#" id="logoutBtn">Logout</a></li>
-            </ul>
+        <header>
+            <nav class="navbar">
 
-            <!-- 🔹 HAMBURGER -->
-            <div class="hamburger" onclick="toggleMenu()">
-                ☰
-            </div>
+                <!-- 🔹 LOGO + TEXT -->
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo.jpeg" alt="logo">
+                    <span>First Year Engineering</span>
+                </a>
 
-        </nav>
-    </header>
+                <!-- 🔹 NAV LINKS -->
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="faculty.html">Faculties</a></li>
+                    <li><a href="association.html">Association</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="gallery.html">Gallery</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
 
-    <!-- 🔹 ADMIN SECTION -->
-    <section class="admin-section">
-        <div class="admin-wrapper">
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <h2>Events</h2>
-                    <button id="addEventBtn" class="btn-add" title="Add New Event">➕</button>
+                <!-- 🔹 HAMBURGER -->
+                <div class="hamburger" onclick="toggleMenu()">
+                    ☰
                 </div>
-                <div id="eventsList" class="events-list">
-                    <div class="loading">Loading events...</div>
-                </div>
-                <button id="toggleAssociationPanelBtn" class="sidebar-toggle-btn" type="button" aria-expanded="false">
-                    Association Members
-                </button>
-            </aside>
 
-            <!-- 🔹 ADD EVENT MODAL -->
-            <div id="addEventModal" class="modal" style="display: none;">
-                <div class="modal-content" style="max-width: 600px; max-height: 90vh;">
-                    <div class="modal-header">
-                        <h2>Create New Event & Add Questions</h2>
-                        <button class="modal-close" onclick="closeAddEventModal()">&times;</button>
+            </nav>
+        </header>
+
+        <!-- 🔹 ADMIN SECTION -->
+        <section class="admin-section">
+            <div class="admin-wrapper">
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <h2>Events</h2>
+                        <button id="addEventBtn" class="btn-add" title="Add New Event">➕</button>
                     </div>
-                    <form id="addEventForm" class="add-event-form">
-                        <!-- EVENT DETAILS -->
-                        <div style="border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-                            <h3 style="color: #1a2a44; font-size: 16px; margin-bottom: 15px;">📋 Event Details</h3>
-                            <div class="form-group">
-                                <label for="eventTitle" class="required">Event Title</label>
-                                <input type="text" id="eventTitle" placeholder="Enter event name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="eventDescription">Description</label>
-                                <textarea id="eventDescription" placeholder="Enter event description"
-                                    rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="eventDate" class="required">Event Date & Time</label>
-                                <input type="datetime-local" id="eventDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="eventFlyer">Event Flyer (Image)</label>
-                                <input type="file" id="eventFlyer" accept="image/*">
-                                <small style="display:block; color:#777; margin-top:6px; font-size:12px;">
-                                    Upload a flyer image (optional). This will be shown on the Events page.
-                                </small>
-                                <img id="eventFlyerPreview" alt="Flyer preview" style="display:none; margin-top:10px; width:100%; max-height:200px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
-                            </div>
-                            <div class="form-group">
-                                <label for="eventGalleryEnabled">Show Winners In Gallery</label>
-                                <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
-                                    <input type="checkbox" id="eventGalleryEnabled">
-                                    Enable winner gallery after the event deadline
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- QUESTIONS SECTION -->
-                        <div style="border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h3 style="color: #1a2a44; font-size: 16px; margin: 0;">❓ Registration Questions
-                                    (Optional)</h3>
-                                <button type="button" class="btn"
-                                    style="padding: 8px 12px; font-size: 12px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;"
-                                    onclick="openQuestionFormModal()">+ Add Question</button>
-                            </div>
-                            <div id="eventQuestionsList" style="max-height: 250px; overflow-y: auto;">
-                                <p style="color: #999; font-size: 13px; text-align: center; padding: 20px;">No questions
-                                    added yet. Click "+ Add Question" to add one.</p>
-                            </div>
-                        </div>
-
-                        <!-- ACTION BUTTONS -->
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">✓ Publish Event</button>
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeAddEventModal()">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 🔹 QUICK ADD QUESTION TO EVENT FORM MODAL -->
-            <div id="quickQuestionModal" class="modal" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Add Question to Event</h2>
-                        <button class="modal-close" onclick="closeQuestionFormModal()">&times;</button>
+                    <div id="eventsList" class="events-list">
+                        <div class="loading">Loading events...</div>
                     </div>
-                    <form id="quickQuestionForm" class="add-event-form">
-                        <div class="form-group">
-                            <label for="quickQuestionText" class="required">Question Text</label>
-                            <textarea id="quickQuestionText" placeholder="Enter the question" rows="3"
-                                required></textarea>
-                        </div>
+                    <button id="toggleAssociationPanelBtn" class="sidebar-toggle-btn" type="button"
+                        aria-expanded="false">
+                        Association Members
+                    </button>
+                </aside>
 
-                        <div class="form-group">
-                            <label for="quickQuestionType" class="required">Question Type</label>
-                            <select id="quickQuestionType" required onchange="updateQuickQuestionTypeDisplay()">
-                                <option value="">Select Type...</option>
-                                <option value="text">Text Input</option>
-                                <option value="email">Email</option>
-                                <option value="number">Number</option>
-                                <option value="textarea">Long Text</option>
-                                <option value="select">Dropdown</option>
-                                <option value="radio">Radio Buttons</option>
-                                <option value="checkbox">Checkboxes</option>
-                                <option value="file">File Upload</option>
-                                <option value="group_members">Group Members</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" id="quickOptionsGroup" style="display: none;">
-                            <label for="quickQuestionOptions">Options / Limit</label>
-                            <textarea id="quickQuestionOptions" placeholder="Option 1, Option 2, Option 3 or max members (1-10)"
-                                rows="3"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="quickQuestionRequired" checked>
-                                Required Question
-                            </label>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Add to Event</button>
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeQuestionFormModal()">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 🔹 ADD QUESTION MODAL -->
-            <div id="addQuestionModal" class="modal" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Add Question to Event</h2>
-                        <button class="modal-close" onclick="closeAddQuestionModal()">&times;</button>
-                    </div>
-                    <form id="addQuestionForm" class="add-event-form">
-                        <div class="form-group">
-                            <label for="questionText" class="required">Question</label>
-                            <textarea id="questionText" placeholder="Enter the question" rows="3" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="questionType" class="required">Question Type</label>
-                            <select id="questionType" required onchange="updateQuestionTypeDisplay()">
-                                <option value="">Select Type...</option>
-                                <option value="text">Text Input</option>
-                                <option value="email">Email</option>
-                                <option value="number">Number</option>
-                                <option value="textarea">Long Text</option>
-                                <option value="select">Dropdown</option>
-                                <option value="radio">Radio Buttons</option>
-                                <option value="checkbox">Checkboxes</option>
-                                <option value="file">File Upload</option>
-                                <option value="group_members">Group Members</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="optionsGroup" style="display: none;">
-                            <label for="questionOptions">Options / Limit</label>
-                            <textarea id="questionOptions" placeholder="Option 1, Option 2, Option 3 or max members (1-10)"
-                                rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="questionRequired" checked>
-                                Required Question
-                            </label>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Add Question</button>
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeAddQuestionModal()">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <section class="main-content">
-                <div id="associationMembersSection" style="display: none;">
-                <div class="section-header">
-                    <h2>Association Members</h2>
-                    <button id="addAssociationMemberBtn" class="btn btn-primary" type="button">Add Member</button>
-                </div>
-
-                <div id="associationMembersAdminList" class="questions-list">
-                    <div class="loading">Loading association members...</div>
-                </div>
-                </div>
-
-                <div id="associationMemberModal" class="modal" style="display: none;">
-                    <div class="modal-content" style="max-width: 620px;">
+                <!-- 🔹 ADD EVENT MODAL -->
+                <div id="addEventModal" class="modal" style="display: none;">
+                    <div class="modal-content" style="max-width: 600px; max-height: 90vh;">
                         <div class="modal-header">
-                            <h2 id="associationMemberModalTitle">Add Association Member</h2>
-                            <button class="modal-close" onclick="closeAssociationMemberModal()">&times;</button>
+                            <h2>Create New Event & Add Questions</h2>
+                            <button class="modal-close" onclick="closeAddEventModal()">&times;</button>
                         </div>
-                        <form id="associationMemberForm" class="add-event-form">
-                            <input type="hidden" id="associationMemberId">
-
-                            <div class="form-group">
-                                <label for="associationMemberName" class="required">Member Name</label>
-                                <input type="text" id="associationMemberName" required placeholder="Enter member name">
+                        <form id="addEventForm" class="add-event-form">
+                            <!-- EVENT DETAILS -->
+                            <div style="border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
+                                <h3 style="color: #1a2a44; font-size: 16px; margin-bottom: 15px;">📋 Event Details</h3>
+                                <div class="form-group">
+                                    <label for="eventTitle" class="required">Event Title</label>
+                                    <input type="text" id="eventTitle" placeholder="Enter event name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="eventDescription">Description</label>
+                                    <textarea id="eventDescription" placeholder="Enter event description"
+                                        rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="eventDate" class="required">Event Date & Time</label>
+                                    <input type="datetime-local" id="eventDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="eventFlyer">Event Flyer (Image)</label>
+                                    <input type="file" id="eventFlyer" accept="image/*">
+                                    <small style="display:block; color:#777; margin-top:6px; font-size:12px;">
+                                        Upload a flyer image (optional). This will be shown on the Events page.
+                                    </small>
+                                    <img id="eventFlyerPreview" alt="Flyer preview"
+                                        style="display:none; margin-top:10px; width:100%; max-height:200px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+                                </div>
+                                <div class="form-group">
+                                    <label for="eventGalleryEnabled">Show Winners In Gallery</label>
+                                    <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
+                                        <input type="checkbox" id="eventGalleryEnabled">
+                                        Enable winner gallery after the event deadline
+                                    </label>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="associationMemberRole" class="required">Role</label>
-                                <input type="text" id="associationMemberRole" required placeholder="Enter role">
+                            <!-- QUESTIONS SECTION -->
+                            <div style="border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h3 style="color: #1a2a44; font-size: 16px; margin: 0;">❓ Registration Questions
+                                        (Optional)</h3>
+                                    <button type="button" class="btn"
+                                        style="padding: 8px 12px; font-size: 12px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;"
+                                        onclick="openQuestionFormModal()">+ Add Question</button>
+                                </div>
+                                <div id="eventQuestionsList" style="max-height: 250px; overflow-y: auto;">
+                                    <p style="color: #999; font-size: 13px; text-align: center; padding: 20px;">No
+                                        questions
+                                        added yet. Click "+ Add Question" to add one.</p>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="associationMemberOrder">Display Order</label>
-                                <input type="number" id="associationMemberOrder" min="0" placeholder="0">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="associationMemberImage">Member Image</label>
-                                <input type="file" id="associationMemberImage" accept="image/*">
-                                <small style="display:block; color:#777; margin-top:6px; font-size:12px;">
-                                    If no image is uploaded, the website will automatically show the role icon.
-                                </small>
-                                <img id="associationMemberImagePreview" alt="Member preview" style="display:none; margin-top:10px; width:100%; max-height:220px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
-                            </div>
-
+                            <!-- ACTION BUTTONS -->
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary" id="associationMemberSaveBtn">Save Member</button>
-                                <button type="button" class="btn btn-secondary" onclick="closeAssociationMemberModal()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">✓ Publish Event</button>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="closeAddEventModal()">Cancel</button>
                             </div>
                         </form>
                     </div>
                 </div>
 
-                <div id="noSelection" class="no-selection">
-                    <p>Select an event to view responses or manage questions</p>
+                <!-- 🔹 QUICK ADD QUESTION TO EVENT FORM MODAL -->
+                <div id="quickQuestionModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Add Question to Event</h2>
+                            <button class="modal-close" onclick="closeQuestionFormModal()">&times;</button>
+                        </div>
+                        <form id="quickQuestionForm" class="add-event-form">
+                            <div class="form-group">
+                                <label for="quickQuestionText" class="required">Question Text</label>
+                                <textarea id="quickQuestionText" placeholder="Enter the question" rows="3"
+                                    required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="quickQuestionType" class="required">Question Type</label>
+                                <select id="quickQuestionType" required onchange="updateQuickQuestionTypeDisplay()">
+                                    <option value="">Select Type...</option>
+                                    <option value="text">Text Input</option>
+                                    <option value="email">Email</option>
+                                    <option value="number">Number</option>
+                                    <option value="textarea">Long Text</option>
+                                    <option value="select">Dropdown</option>
+                                    <option value="radio">Radio Buttons</option>
+                                    <option value="checkbox">Checkboxes</option>
+                                    <option value="file">File Upload</option>
+                                    <option value="group_members">Group Members</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="quickOptionsGroup" style="display: none;">
+                                <label for="quickQuestionOptions">Options / Limit</label>
+                                <textarea id="quickQuestionOptions"
+                                    placeholder="Option 1, Option 2, Option 3 or max members (1-10)"
+                                    rows="3"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="quickQuestionRequired" checked>
+                                    Required Question
+                                </label>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Add to Event</button>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="closeQuestionFormModal()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
-                <div id="responsesSection" class="responses-section" style="display: none;">
-                    <div class="section-tabs">
-                        <button class="tab-btn active" onclick="switchTab('responses')">📊 Responses</button>
-                        <button class="tab-btn" onclick="switchTab('questions')">❓ Questions</button>
+                <!-- 🔹 ADD QUESTION MODAL -->
+                <div id="addQuestionModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Add Question to Event</h2>
+                            <button class="modal-close" onclick="closeAddQuestionModal()">&times;</button>
+                        </div>
+                        <form id="addQuestionForm" class="add-event-form">
+                            <div class="form-group">
+                                <label for="questionText" class="required">Question</label>
+                                <textarea id="questionText" placeholder="Enter the question" rows="3"
+                                    required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="questionType" class="required">Question Type</label>
+                                <select id="questionType" required onchange="updateQuestionTypeDisplay()">
+                                    <option value="">Select Type...</option>
+                                    <option value="text">Text Input</option>
+                                    <option value="email">Email</option>
+                                    <option value="number">Number</option>
+                                    <option value="textarea">Long Text</option>
+                                    <option value="select">Dropdown</option>
+                                    <option value="radio">Radio Buttons</option>
+                                    <option value="checkbox">Checkboxes</option>
+                                    <option value="file">File Upload</option>
+                                    <option value="group_members">Group Members</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="optionsGroup" style="display: none;">
+                                <label for="questionOptions">Options / Limit</label>
+                                <textarea id="questionOptions"
+                                    placeholder="Option 1, Option 2, Option 3 or max members (1-10)"
+                                    rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="questionRequired" checked>
+                                    Required Question
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Add Question</button>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="closeAddQuestionModal()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <section class="main-content">
+                    <div id="associationMembersSection" style="display: none;">
+                        <div class="section-header">
+                            <h2>Association Members</h2>
+                            <button id="addAssociationMemberBtn" class="btn btn-primary" type="button">Add
+                                Member</button>
+                        </div>
+
+                        <div id="associationMembersAdminList" class="questions-list">
+                            <div class="loading">Loading association members...</div>
+                        </div>
                     </div>
 
-                    <div id="responsesTab" class="tab-content active">
-                        <div class="section-header">
-                            <h2 id="selectedEventTitle"></h2>
-                            <div class="export-buttons">
-                                <button id="exportExcelBtn" class="btn btn-secondary">📥 Excel</button>
-                                <button id="exportPdfBtn" class="btn btn-secondary">📄 PDF</button>
-                                <button id="exportWordBtn" class="btn btn-secondary">📝 Word</button>
+                    <div id="associationMemberModal" class="modal" style="display: none;">
+                        <div class="modal-content" style="max-width: 620px;">
+                            <div class="modal-header">
+                                <h2 id="associationMemberModalTitle">Add Association Member</h2>
+                                <button class="modal-close" onclick="closeAssociationMemberModal()">&times;</button>
                             </div>
+                            <form id="associationMemberForm" class="add-event-form">
+                                <input type="hidden" id="associationMemberId">
+
+                                <div class="form-group">
+                                    <label for="associationMemberName" class="required">Member Name</label>
+                                    <input type="text" id="associationMemberName" required
+                                        placeholder="Enter member name">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="associationMemberRole" class="required">Role</label>
+                                    <input type="text" id="associationMemberRole" required placeholder="Enter role">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="associationMemberOrder">Display Order</label>
+                                    <input type="number" id="associationMemberOrder" min="0" placeholder="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="associationMemberImage">Member Image</label>
+                                    <input type="file" id="associationMemberImage" accept="image/*">
+                                    <small style="display:block; color:#777; margin-top:6px; font-size:12px;">
+                                        If no image is uploaded, the website will automatically show the role icon.
+                                    </small>
+                                    <img id="associationMemberImagePreview" alt="Member preview"
+                                        style="display:none; margin-top:10px; width:100%; max-height:220px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary" id="associationMemberSaveBtn">Save
+                                        Member</button>
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="closeAssociationMemberModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="noSelection" class="no-selection">
+                        <p>Select an event to view responses or manage questions</p>
+                    </div>
+
+                    <div id="responsesSection" class="responses-section" style="display: none;">
+                        <div class="section-tabs">
+                            <button class="tab-btn active" onclick="switchTab('responses')">📊 Responses</button>
+                            <button class="tab-btn" onclick="switchTab('questions')">❓ Questions</button>
                         </div>
 
-                        <div id="pdfOptionsPanel" style="display:none; margin-top:12px; padding:14px; border:1px solid #d9e2f2; border-radius:10px; background:#fbfcff;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-                                <div>
-                                    <strong>PDF Column Selection</strong>
-                                    <div style="font-size:12px; color:#667085;">Choose the columns to include in the PDF and add blank columns if needed.</div>
-                                </div>
-                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button id="pdfGenerateBtn" class="btn btn-primary" type="button">Generate PDF</button>
-                                    <button id="pdfCloseBtn" class="btn btn-secondary" type="button">Close</button>
+                        <div id="responsesTab" class="tab-content active">
+                            <div class="section-header">
+                                <h2 id="selectedEventTitle"></h2>
+                                <div class="export-buttons">
+                                    <button id="exportExcelBtn" class="btn btn-secondary">📥 Excel</button>
+                                    <button id="exportPdfBtn" class="btn btn-secondary">📄 PDF</button>
+                                    <button id="exportWordBtn" class="btn btn-secondary">📝 Word</button>
                                 </div>
                             </div>
 
-                            <div style="margin-bottom:12px;">
-                                <label for="pdfHeadingInput" style="display:block; font-weight:600; margin-bottom:6px;">PDF Heading</label>
-                                <textarea id="pdfHeadingInput" class="search-box" placeholder="Use event name or type a custom heading" rows="3" style="width:100%; resize:vertical;"></textarea>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Type the heading you want above the table. Leave it blank to use the event name automatically.</div>
+                            <div id="pdfOptionsPanel"
+                                style="display:none; margin-top:12px; padding:14px; border:1px solid #d9e2f2; border-radius:10px; background:#fbfcff;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                                    <div>
+                                        <strong>PDF Column Selection</strong>
+                                        <div style="font-size:12px; color:#667085;">Choose the columns to include in the
+                                            PDF and add blank columns if needed.</div>
+                                    </div>
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                        <button id="pdfGenerateBtn" class="btn btn-primary" type="button">Generate
+                                            PDF</button>
+                                        <button id="pdfCloseBtn" class="btn btn-secondary" type="button">Close</button>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom:12px;">
+                                    <label for="pdfHeadingInput"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">PDF Heading</label>
+                                    <textarea id="pdfHeadingInput" class="search-box"
+                                        placeholder="Use event name or type a custom heading" rows="3"
+                                        style="width:100%; resize:vertical;"></textarea>
+                                    <div style="font-size:12px; color:#667085; margin-top:6px;">Type the heading you
+                                        want above the table. Leave it blank to use the event name automatically.</div>
+                                </div>
+
+                                <div style="margin-bottom:12px;">
+                                    <label style="display:block; font-weight:600; margin-bottom:6px;">PDF Layout</label>
+                                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                        <label
+                                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:#1f2937;">
+                                            <input type="radio" name="pdfOrientation" value="portrait" checked>
+                                            Vertical
+                                        </label>
+                                        <label
+                                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:#1f2937;">
+                                            <input type="radio" name="pdfOrientation" value="landscape">
+                                            Horizontal
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                                    <div>
+                                        <label for="pdfRowRangeStartInput"
+                                            style="display:block; font-weight:600; margin-bottom:6px;">Start Row</label>
+                                        <input type="number" id="pdfRowRangeStartInput" class="search-box" min="1"
+                                            step="1" placeholder="1" style="width:100%;">
+                                    </div>
+                                    <div>
+                                        <label for="pdfRowRangeEndInput"
+                                            style="display:block; font-weight:600; margin-bottom:6px;">End Row</label>
+                                        <input type="number" id="pdfRowRangeEndInput" class="search-box" min="1"
+                                            step="1" placeholder="Leave blank for all" style="width:100%;">
+                                    </div>
+                                    <div>
+                                        <label for="pdfRowsPerPageInput"
+                                            style="display:block; font-weight:600; margin-bottom:6px;">Rows Per
+                                            Page</label>
+                                        <input type="number" id="pdfRowsPerPageInput" class="search-box" min="1"
+                                            step="1" placeholder="Auto" style="width:100%;">
+                                    </div>
+                                </div>
+                                <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose which response
+                                    rows should appear in the PDF. Example: Start Row `1`, End Row `25`, Rows Per Page
+                                    `10`.</div>
+
+                                <div style="margin-bottom:12px;">
+                                    <label for="pdfFooterTypeSelect"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Signature
+                                        Footer</label>
+                                    <select id="pdfFooterTypeSelect" class="search-box" style="width:100%;">
+                                        <option value="none">No Signature</option>
+                                        <option value="single">Single Signature (Right Side)</option>
+                                        <option value="triple">Three Signatures</option>
+                                    </select>
+                                    <div style="font-size:12px; color:#667085; margin-top:6px;">Choose how the signature
+                                        area should appear below the table.</div>
+                                </div>
+
+                                <div id="pdfSingleFooterFields" style="display:none; margin-bottom:12px;">
+                                    <label for="pdfFooterSingleNameInput"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Single Signature
+                                        Name</label>
+                                    <textarea id="pdfFooterSingleNameInput" class="search-box"
+                                        placeholder="Enter the name for the right-side signature&#10;Press Enter for next line"
+                                        rows="2" style="width:100%; resize:vertical;"></textarea>
+                                </div>
+
+                                <div id="pdfTripleFooterFields"
+                                    style="display:none; margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                                    <div>
+                                        <label for="pdfFooterName1Input"
+                                            style="display:block; font-weight:600; margin-bottom:6px;">Left
+                                            Signature</label>
+                                        <textarea id="pdfFooterName1Input" class="search-box"
+                                            placeholder="Left side name&#10;Press Enter for next line" rows="2"
+                                            style="width:100%; resize:vertical;"></textarea>
+                                    </div>
+                                    <div>
+                                        <label for="pdfFooterName2Input"
+                                            style="display:block; font-weight:600; margin-bottom:6px;">Center
+                                            Signature</label>
+                                        <textarea id="pdfFooterName2Input" class="search-box"
+                                            placeholder="Center name&#10;Press Enter for next line" rows="2"
+                                            style="width:100%; resize:vertical;"></textarea>
+                                    </div>
+                                    <div>
+                                        <label for="pdfFooterName3Input"
+                                            style="display:block; font-weight:600; margin-bottom:6px;">Right
+                                            Signature</label>
+                                        <textarea id="pdfFooterName3Input" class="search-box"
+                                            placeholder="Right side name&#10;Press Enter for next line" rows="2"
+                                            style="width:100%; resize:vertical;"></textarea>
+                                    </div>
+                                </div>
+                                <div style="font-size:12px; color:#667085; margin-top:-4px;">The signature block will be
+                                    placed with proper gap below the table.</div>
                             </div>
 
-                            <div style="margin-bottom:12px;">
-                                <label style="display:block; font-weight:600; margin-bottom:6px;">PDF Layout</label>
-                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                    <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#1f2937;">
-                                        <input type="radio" name="pdfOrientation" value="portrait" checked>
-                                        Vertical
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#1f2937;">
-                                        <input type="radio" name="pdfOrientation" value="landscape">
-                                        Horizontal
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
-                                <div>
-                                    <label for="pdfRowRangeStartInput" style="display:block; font-weight:600; margin-bottom:6px;">Start Row</label>
-                                    <input type="number" id="pdfRowRangeStartInput" class="search-box" min="1" step="1" placeholder="1" style="width:100%;">
-                                </div>
-                                <div>
-                                    <label for="pdfRowRangeEndInput" style="display:block; font-weight:600; margin-bottom:6px;">End Row</label>
-                                    <input type="number" id="pdfRowRangeEndInput" class="search-box" min="1" step="1" placeholder="Leave blank for all" style="width:100%;">
-                                </div>
-                                <div>
-                                    <label for="pdfRowsPerPageInput" style="display:block; font-weight:600; margin-bottom:6px;">Rows Per Page</label>
-                                    <input type="number" id="pdfRowsPerPageInput" class="search-box" min="1" step="1" placeholder="Auto" style="width:100%;">
-                                </div>
-                            </div>
-                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose which response rows should appear in the PDF. Example: Start Row `1`, End Row `25`, Rows Per Page `10`.</div>
-
-                            <div style="margin-bottom:12px;">
-                                <label for="pdfFooterTypeSelect" style="display:block; font-weight:600; margin-bottom:6px;">Signature Footer</label>
-                                <select id="pdfFooterTypeSelect" class="search-box" style="width:100%;">
-                                    <option value="none">No Signature</option>
-                                    <option value="single">Single Signature (Right Side)</option>
-                                    <option value="triple">Three Signatures</option>
-                                </select>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Choose how the signature area should appear below the table.</div>
-                            </div>
-
-                            <div id="pdfSingleFooterFields" style="display:none; margin-bottom:12px;">
-                                <label for="pdfFooterSingleNameInput" style="display:block; font-weight:600; margin-bottom:6px;">Single Signature Name</label>
-                                <textarea id="pdfFooterSingleNameInput" class="search-box" placeholder="Enter the name for the right-side signature&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
-                            </div>
-
-                            <div id="pdfTripleFooterFields" style="display:none; margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
-                                <div>
-                                    <label for="pdfFooterName1Input" style="display:block; font-weight:600; margin-bottom:6px;">Left Signature</label>
-                                    <textarea id="pdfFooterName1Input" class="search-box" placeholder="Left side name&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
-                                </div>
-                                <div>
-                                    <label for="pdfFooterName2Input" style="display:block; font-weight:600; margin-bottom:6px;">Center Signature</label>
-                                    <textarea id="pdfFooterName2Input" class="search-box" placeholder="Center name&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
-                                </div>
-                                <div>
-                                    <label for="pdfFooterName3Input" style="display:block; font-weight:600; margin-bottom:6px;">Right Signature</label>
-                                    <textarea id="pdfFooterName3Input" class="search-box" placeholder="Right side name&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
-                                </div>
-                            </div>
-                            <div style="font-size:12px; color:#667085; margin-top:-4px;">The signature block will be placed with proper gap below the table.</div>
-                        </div>
-
-                            <div id="pdfColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
+                            <div id="pdfColumnChecklist"
+                                style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
 
                             <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                                <input type="text" id="pdfBlankColumnInput" placeholder="Add custom blank column" class="search-box" style="flex:1; min-width:220px;">
-                                <button id="pdfAddBlankColumnBtn" class="btn btn-secondary" type="button">Add Blank Column</button>
+                                <input type="text" id="pdfBlankColumnInput" placeholder="Add custom blank column"
+                                    class="search-box" style="flex:1; min-width:220px;">
+                                <button id="pdfAddBlankColumnBtn" class="btn btn-secondary" type="button">Add Blank
+                                    Column</button>
                             </div>
 
                             <div id="pdfBlankColumnsList" style="margin-top:10px;"></div>
 
                             <div style="margin-top:16px;">
-                                <label style="display:block; font-weight:600; margin-bottom:8px;">Live PDF Preview</label>
-                                <div id="pdfPreviewPanel" style="border:1px solid #d9e2f2; border-radius:10px; background:#f3f6fb; padding:14px; overflow:auto;">
+                                <label style="display:block; font-weight:600; margin-bottom:8px;">Live PDF
+                                    Preview</label>
+                                <div id="pdfPreviewPanel"
+                                    style="border:1px solid #d9e2f2; border-radius:10px; background:#f3f6fb; padding:14px; overflow:auto;">
                                     <div style="font-size:12px; color:#667085;">Preview will appear here.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="wordOptionsPanel" style="display:none; margin-top:12px; padding:14px; border:1px solid #d9e2f2; border-radius:10px; background:#fbfcff;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                        <div id="wordOptionsPanel"
+                            style="display:none; margin-top:12px; padding:14px; border:1px solid #d9e2f2; border-radius:10px; background:#fbfcff;">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
                                 <div>
                                     <strong>Word Column Selection</strong>
-                                    <div style="font-size:12px; color:#667085;">Choose the columns to include in the Word file and add blank columns if needed.</div>
+                                    <div style="font-size:12px; color:#667085;">Choose the columns to include in the
+                                        Word file and add blank columns if needed.</div>
                                 </div>
                                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button id="wordGenerateBtn" class="btn btn-primary" type="button">Generate Word</button>
+                                    <button id="wordGenerateBtn" class="btn btn-primary" type="button">Generate
+                                        Word</button>
                                     <button id="wordCloseBtn" class="btn btn-secondary" type="button">Close</button>
                                 </div>
                             </div>
 
                             <div style="margin-bottom:12px;">
-                                <label for="wordHeadingInput" style="display:block; font-weight:600; margin-bottom:6px;">Word Heading</label>
-                                <textarea id="wordHeadingInput" class="search-box" placeholder="Use event name or type a custom heading" rows="3" style="width:100%; resize:vertical;"></textarea>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Type the heading you want above the table. Leave it blank to use the event name automatically.</div>
+                                <label for="wordHeadingInput"
+                                    style="display:block; font-weight:600; margin-bottom:6px;">Word Heading</label>
+                                <textarea id="wordHeadingInput" class="search-box"
+                                    placeholder="Use event name or type a custom heading" rows="3"
+                                    style="width:100%; resize:vertical;"></textarea>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">Type the heading you want
+                                    above the table. Leave it blank to use the event name automatically.</div>
                             </div>
 
-                            <div style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                            <div
+                                style="margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
                                 <div>
-                                    <label for="wordRowRangeStartInput" style="display:block; font-weight:600; margin-bottom:6px;">Start Row</label>
-                                    <input type="number" id="wordRowRangeStartInput" class="search-box" min="1" step="1" placeholder="1" style="width:100%;">
+                                    <label for="wordRowRangeStartInput"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Start Row</label>
+                                    <input type="number" id="wordRowRangeStartInput" class="search-box" min="1" step="1"
+                                        placeholder="1" style="width:100%;">
                                 </div>
                                 <div>
-                                    <label for="wordRowRangeEndInput" style="display:block; font-weight:600; margin-bottom:6px;">End Row</label>
-                                    <input type="number" id="wordRowRangeEndInput" class="search-box" min="1" step="1" placeholder="Leave blank for all" style="width:100%;">
+                                    <label for="wordRowRangeEndInput"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">End Row</label>
+                                    <input type="number" id="wordRowRangeEndInput" class="search-box" min="1" step="1"
+                                        placeholder="Leave blank for all" style="width:100%;">
                                 </div>
                                 <div>
-                                    <label for="wordRowsPerPageInput" style="display:block; font-weight:600; margin-bottom:6px;">Rows Per Page</label>
-                                    <input type="number" id="wordRowsPerPageInput" class="search-box" min="1" step="1" placeholder="Auto" style="width:100%;">
+                                    <label for="wordRowsPerPageInput"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Rows Per Page</label>
+                                    <input type="number" id="wordRowsPerPageInput" class="search-box" min="1" step="1"
+                                        placeholder="Auto" style="width:100%;">
                                 </div>
                             </div>
-                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose which response rows should appear in the Word file. Example: Start Row `1`, End Row `25`, Rows Per Page `10`.</div>
+                            <div style="font-size:12px; color:#667085; margin:-2px 0 12px;">Choose which response rows
+                                should appear in the Word file. Example: Start Row `1`, End Row `25`, Rows Per Page
+                                `10`.</div>
 
                             <div style="margin-bottom:12px;">
-                                <label for="wordFooterTypeSelect" style="display:block; font-weight:600; margin-bottom:6px;">Signature Footer</label>
+                                <label for="wordFooterTypeSelect"
+                                    style="display:block; font-weight:600; margin-bottom:6px;">Signature Footer</label>
                                 <select id="wordFooterTypeSelect" class="search-box" style="width:100%;">
                                     <option value="none">No Signature</option>
                                     <option value="single">Single Signature (Right Side)</option>
                                     <option value="triple">Three Signatures</option>
                                 </select>
-                                <div style="font-size:12px; color:#667085; margin-top:6px;">Choose how the signature area should appear below the table.</div>
+                                <div style="font-size:12px; color:#667085; margin-top:6px;">Choose how the signature
+                                    area should appear below the table.</div>
                             </div>
 
                             <div id="wordSingleFooterFields" style="display:none; margin-bottom:12px;">
-                                <label for="wordFooterSingleNameInput" style="display:block; font-weight:600; margin-bottom:6px;">Single Signature Name</label>
-                                <textarea id="wordFooterSingleNameInput" class="search-box" placeholder="Enter the name for the right-side signature&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
+                                <label for="wordFooterSingleNameInput"
+                                    style="display:block; font-weight:600; margin-bottom:6px;">Single Signature
+                                    Name</label>
+                                <textarea id="wordFooterSingleNameInput" class="search-box"
+                                    placeholder="Enter the name for the right-side signature&#10;Press Enter for next line"
+                                    rows="2" style="width:100%; resize:vertical;"></textarea>
                             </div>
 
-                            <div id="wordTripleFooterFields" style="display:none; margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+                            <div id="wordTripleFooterFields"
+                                style="display:none; margin-bottom:12px; display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
                                 <div>
-                                    <label for="wordFooterName1Input" style="display:block; font-weight:600; margin-bottom:6px;">Left Signature</label>
-                                    <textarea id="wordFooterName1Input" class="search-box" placeholder="Left side name&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
+                                    <label for="wordFooterName1Input"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Left
+                                        Signature</label>
+                                    <textarea id="wordFooterName1Input" class="search-box"
+                                        placeholder="Left side name&#10;Press Enter for next line" rows="2"
+                                        style="width:100%; resize:vertical;"></textarea>
                                 </div>
                                 <div>
-                                    <label for="wordFooterName2Input" style="display:block; font-weight:600; margin-bottom:6px;">Center Signature</label>
-                                    <textarea id="wordFooterName2Input" class="search-box" placeholder="Center name&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
+                                    <label for="wordFooterName2Input"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Center
+                                        Signature</label>
+                                    <textarea id="wordFooterName2Input" class="search-box"
+                                        placeholder="Center name&#10;Press Enter for next line" rows="2"
+                                        style="width:100%; resize:vertical;"></textarea>
                                 </div>
                                 <div>
-                                    <label for="wordFooterName3Input" style="display:block; font-weight:600; margin-bottom:6px;">Right Signature</label>
-                                    <textarea id="wordFooterName3Input" class="search-box" placeholder="Right side name&#10;Press Enter for next line" rows="2" style="width:100%; resize:vertical;"></textarea>
+                                    <label for="wordFooterName3Input"
+                                        style="display:block; font-weight:600; margin-bottom:6px;">Right
+                                        Signature</label>
+                                    <textarea id="wordFooterName3Input" class="search-box"
+                                        placeholder="Right side name&#10;Press Enter for next line" rows="2"
+                                        style="width:100%; resize:vertical;"></textarea>
                                 </div>
                             </div>
 
-                            <div id="wordColumnChecklist" style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
+                            <div id="wordColumnChecklist"
+                                style="display:grid; gap:8px; max-height:240px; overflow:auto;"></div>
 
                             <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                                <input type="text" id="wordBlankColumnInput" placeholder="Add custom blank column" class="search-box" style="flex:1; min-width:220px;">
-                                <button id="wordAddBlankColumnBtn" class="btn btn-secondary" type="button">Add Blank Column</button>
+                                <input type="text" id="wordBlankColumnInput" placeholder="Add custom blank column"
+                                    class="search-box" style="flex:1; min-width:220px;">
+                                <button id="wordAddBlankColumnBtn" class="btn btn-secondary" type="button">Add Blank
+                                    Column</button>
                             </div>
 
                             <div id="wordBlankColumnsList" style="margin-top:10px;"></div>
@@ -483,7 +592,9 @@
                                 <h2>Winner Selection</h2>
                                 <button id="saveWinnersBtn" class="btn btn-primary" type="button">Save Winners</button>
                             </div>
-                            <p class="winner-management-note">Add the top three winners for this event. These winners will be shown after the event deadline on the event page and in the gallery when enabled.</p>
+                            <p class="winner-management-note">Add the top three winners for this event. These winners
+                                will be shown after the event deadline on the event page and in the gallery when
+                                enabled.</p>
                             <div class="form-group">
                                 <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
                                     <input type="checkbox" id="winnerGalleryEnabled">
@@ -495,11 +606,13 @@
                                     <label for="eventGalleryImages">Event Gallery Images</label>
                                     <input type="file" id="eventGalleryImages" accept="image/*" multiple>
                                     <small style="display:block; color:#667085; margin-top:6px; font-size:12px;">
-                                        Upload images for this particular event. Each image will be compressed up to 300 KB before upload.
+                                        Upload images for this particular event. Each image will be compressed up to 300
+                                        KB before upload.
                                     </small>
                                 </div>
                                 <div class="form-actions" style="justify-content:flex-start; margin-top:0;">
-                                    <button id="uploadEventGalleryImagesBtn" class="btn btn-secondary" type="button">Upload Event Images</button>
+                                    <button id="uploadEventGalleryImagesBtn" class="btn btn-secondary"
+                                        type="button">Upload Event Images</button>
                                 </div>
                                 <div id="eventGalleryImagesList" class="event-gallery-images-list"></div>
                             </div>
@@ -571,88 +684,88 @@
                             <div class="loading">Loading questions...</div>
                         </div>
                     </div>
-                </div>
-            </section>
+            </div>
+        </section>
         </div>
-    </section>
+        </section>
 
-    <footer class="footer">
+        <footer class="footer">
 
-        <div class="footer-container">
+            <div class="footer-container">
 
-            <!-- 🔹 LEFT -->
-            <div class="footer-col">
-                <h3>First Year Engineering</h3>
+                <!-- 🔹 LEFT -->
+                <div class="footer-col">
+                    <h3>First Year Engineering</h3>
+                    <p>
+                        Department of First Year Engineering <br>
+                        Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar <br>
+                        Building strong foundations for future engineers.
+                    </p>
+                </div>
+
+                <!-- 🔹 QUICK LINKS -->
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="faculty.html">Faculty</a></li>
+                        <li><a href="association.html">Association</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="gallery.html">Gallery</a></li>
+                    </ul>
+                </div>
+
+                <!-- 🔹 CONTACT -->
+                <div class="footer-col">
+                    <h3>Connect With Us</h3>
+                    <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
+                    <p>📧 <a href="mailto:pdvvpcoe@gmail.com">pdvvpcoe@gmail.com</a></p>
+                    <p>📷 <a href="https://instagram.com/pdvvpcoe.safe" target="_blank"
+                            rel="noopener noreferrer">@pdvvpcoe.safe</a></p>
+                </div>
+
+            </div>
+
+            <!-- 🔹 BOTTOM -->
+            <div class="footer-bottom">
                 <p>
-                    Department of First Year Engineering <br>
-                    Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar <br>
-                    Building strong foundations for future engineers.
+                    © 2026 First Year Engineering Department. All rights reserved.
                 </p>
             </div>
 
-            <!-- 🔹 QUICK LINKS -->
-            <div class="footer-col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="faculty.html">Faculty</a></li>
-                    <li><a href="association.html">Association</a></li>
-                    <li><a href="events.html">Events</a></li>
-                    <li><a href="gallery.html">Gallery</a></li>
-                </ul>
-            </div>
+        </footer>
 
-            <!-- 🔹 CONTACT -->
-            <div class="footer-col">
-                <h3>Connect With Us</h3>
-                <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
-                <p>📧 <a href="mailto:pdvvpcoe@gmail.com">pdvvpcoe@gmail.com</a></p>
-                <p>📷 <a href="https://instagram.com/pdvvpcoe.safe" target="_blank" rel="noopener noreferrer">@pdvvpcoe.safe</a></p>
-            </div>
+        <!-- 🔹 SCRIPT -->
+        <script>
+            function toggleMenu() {
+                document.getElementById("navLinks").classList.toggle("active");
+            }
+        </script>
 
-        </div>
+        <!-- Official Supabase Library (Production-ready for Vercel) -->
 
-        <!-- 🔹 BOTTOM -->
-        <div class="footer-bottom">
-            <p>
-                © 2026 First Year Engineering Department. All rights reserved.
-            </p>
-        </div>
+        <!-- Local Development Credentials (remove in production) -->
+        <script src="config-local.js"></script>
 
-    </footer>
+        <!-- 🔹 SUPABASE FIRST -->
 
-    <!-- 🔹 SCRIPT -->
-    <script>
-        function toggleMenu() {
-            document.getElementById("navLinks").classList.toggle("active");
-        }
-    </script>
+        <!-- 🔹 CONFIG -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/main.min.js"></script>
 
-    <!-- Official Supabase Library (Production-ready for Vercel) -->
+        <script src="js/config.js"></script>
 
-    <!-- Local Development Credentials (remove in production) -->
-    <script src="config-local.js"></script>
+        <!-- 🔹 CLIENT -->
+        <script src="js/supabase-client.js"></script>
 
-    <!-- 🔹 SUPABASE FIRST -->
+        <!-- 🔹 EXPORT (create file OR remove) -->
+        <script src="js/export-utils.js"></script>
 
-    <!-- 🔹 CONFIG -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/main.min.js"></script>
-
-    <script src="js/config.js"></script>
-
-    <!-- 🔹 CLIENT -->
-    <script src="js/supabase-client.js"></script>
-
-    <!-- 🔹 EXPORT (create file OR remove) -->
-    <script src="js/export-utils.js"></script>
-
-    <!-- 🔹 MAIN LOGIC -->
-    <script src="js/admin-auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => window.requireAdminAuth());
-    </script>
-</body>
+        <!-- 🔹 MAIN LOGIC -->
+        <script src="js/admin-auth.js"></script>
+        <script src="../preloader.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => window.requireAdminAuth());
+        </script>
+    </body>
 
 </html>
-
-

@@ -8,120 +8,133 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="/css/preloader.css">
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 </head>
 
-<body>
-    <header>
-        <nav class="navbar">
-
-            <!-- 🔹 LOGO + TEXT -->
-            <a href="index.html" class="logo-container">
-                <img src="images/logo.jpeg" alt="logo">
-                <span>First Year Engineering</span>
-            </a>
-
-            <!-- 🔹 NAV LINKS -->
-            <ul class="nav-links" id="navLinks">
-                <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="faculty.html">Faculties</a></li>
-                <li><a href="association.html">Association</a></li>
-                <li><a href="events.html">Events</a></li>
-                <li><a href="gallery.html">Gallery</a></li>
-            </ul>
-
-            <!-- 🔹 HAMBURGER -->
-            <div class="hamburger" onclick="toggleMenu()">
-                ☰
-            </div>
-
-        </nav>
-    </header>
-
-    <!-- 🔹 REGISTRATION SECTION -->
-    <section class="registration-section">
-        <div class="registration-wrapper">
-            <div id="eventDetails" class="event-details">
-                <div class="loading">Loading event details...</div>
-            </div>
-
-            <div id="eventWinnersSection" class="event-winners-section" style="display: none;"></div>
-
-            <form id="registrationForm" class="registration-form" style="display: none;">
-                <h2>Register for Event</h2>
-                <div id="questionsContainer"></div>
-                <div class="button-group">
-                    <button type="submit" class="btn btn-primary">Submit Registration</button>
-                    <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
-                </div>
-            </form>
-
-            <div id="successMessage" class="success-message" style="display: none;">
-                <h2>Registration Successful!</h2>
-                <p>Thank you for registering. Check your email for confirmation.</p>
-                <a href="events.html" class="btn btn-primary">Back to Events</a>
-            </div>
+<body class="loading">
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="preloader-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
         </div>
-    </section>
+        <div class="preloader-content">
+            <h1 class="brand-text-loader">STUDENT ASSOCIATION FIRST YEAR </span></h1>
+        </div>
+    </div>
 
-    <footer class="footer">
 
-        <div class="footer-container">
+    <body>
+        <header>
+            <nav class="navbar">
 
-            <!-- 🔹 LEFT -->
-            <div class="footer-col">
-                <h3>First Year Engineering</h3>
-                <p>
-                    Department of First Year Engineering <br>
-                    Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar <br>
-                    Building strong foundations for future engineers.
-                </p>
-            </div>
+                <!-- 🔹 LOGO + TEXT -->
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo.jpeg" alt="logo">
+                    <span>First Year Engineering</span>
+                </a>
 
-            <!-- 🔹 QUICK LINKS -->
-            <div class="footer-col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="faculty.html">Faculty</a></li>
+                <!-- 🔹 NAV LINKS -->
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="faculty.html">Faculties</a></li>
                     <li><a href="association.html">Association</a></li>
                     <li><a href="events.html">Events</a></li>
                     <li><a href="gallery.html">Gallery</a></li>
                 </ul>
+
+                <!-- 🔹 HAMBURGER -->
+                <div class="hamburger" onclick="toggleMenu()">
+                    ☰
+                </div>
+
+            </nav>
+        </header>
+
+        <!-- 🔹 REGISTRATION SECTION -->
+        <section class="registration-section">
+            <div class="registration-wrapper">
+                <div id="eventDetails" class="event-details">
+                    <div class="loading">Loading event details...</div>
+                </div>
+
+                <div id="eventWinnersSection" class="event-winners-section" style="display: none;"></div>
+
+                <form id="registrationForm" class="registration-form" style="display: none;">
+                    <h2>Register for Event</h2>
+                    <div id="questionsContainer"></div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">Submit Registration</button>
+                        <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+                    </div>
+                </form>
+
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <h2>Registration Successful!</h2>
+                    <p>Thank you for registering. Check your email for confirmation.</p>
+                    <a href="events.html" class="btn btn-primary">Back to Events</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+
+            <div class="footer-container">
+
+                <!-- 🔹 LEFT -->
+                <div class="footer-col">
+                    <h3>First Year Engineering</h3>
+                    <p>
+                        Department of First Year Engineering <br>
+                        Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar <br>
+                        Building strong foundations for future engineers.
+                    </p>
+                </div>
+
+                <!-- 🔹 QUICK LINKS -->
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="faculty.html">Faculty</a></li>
+                        <li><a href="association.html">Association</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="gallery.html">Gallery</a></li>
+                    </ul>
+                </div>
+
+                <!-- 🔹 CONTACT -->
+                <div class="footer-col">
+                    <h3>Connect With Us</h3>
+                    <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
+                    <p>📧 <a href="mailto:pdvvpcoe@gmail.com">pdvvpcoe@gmail.com</a></p>
+                    <p>📷 <a href="https://instagram.com/pdvvpcoe.safe" target="_blank"
+                            rel="noopener noreferrer">@pdvvpcoe.safe</a></p>
+                </div>
+
             </div>
 
-            <!-- 🔹 CONTACT -->
-            <div class="footer-col">
-                <h3>Connect With Us</h3>
-                <p>📍 Dr. Vithalrao Vikhe Patil College Of Engineering, Ahilyanagar</p>
-                <p>📧 <a href="mailto:pdvvpcoe@gmail.com">pdvvpcoe@gmail.com</a></p>
-                <p>📷 <a href="https://instagram.com/pdvvpcoe.safe" target="_blank" rel="noopener noreferrer">@pdvvpcoe.safe</a></p>
+            <!-- 🔹 BOTTOM -->
+            <div class="footer-bottom">
+                <p>
+                    © 2026 First Year Engineering Department. All rights reserved.
+                </p>
             </div>
 
-        </div>
+        </footer>
 
-        <!-- 🔹 BOTTOM -->
-        <div class="footer-bottom">
-            <p>
-                © 2026 First Year Engineering Department. All rights reserved.
-            </p>
-        </div>
+        <!-- 🔹 SCRIPT -->
+        <script>
+            function toggleMenu() {
+                document.getElementById("navLinks").classList.toggle("active");
+            }
+        </script>
 
-    </footer>
-
-    <!-- 🔹 SCRIPT -->
-    <script>
-        function toggleMenu() {
-            document.getElementById("navLinks").classList.toggle("active");
-        }
-    </script>
-
-    <script src="js/event-detail.js"></script>
-</body>
+        <script src="js/event-detail.js"></script>
+        <script src="../preloader.js"></script>
+    </body>
 
 </html>
-
-
