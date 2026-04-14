@@ -308,7 +308,7 @@
 
     function getPdfFooterReserve(footer) {
         if (!footer || footer.type === 'none' || !footer.names?.length) {
-            return 12;
+            return 10;
         }
 
         const maxLines = Math.max(
@@ -316,7 +316,7 @@
             ...(footer.names || []).map((name) => normalizeMultilineFooterText(name).length || 1)
         );
 
-        return 30 + (maxLines * 6);
+        return 22 + (maxLines * 5);
     }
 
     function buildPdfTableData(eventData, questions, responses, columns) {
@@ -448,10 +448,9 @@
         const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 8;
+        const margin = 10;
         const footerReserve = getPdfFooterReserve(footer);
         const availableWidth = pageWidth - (margin * 2);
-        const pageContentLimit = pageHeight - margin - footerReserve;
         const headerFill = [255, 255, 255];
         const headerTextColor = [15, 23, 42];
         const bodyTextColor = [17, 24, 39];
@@ -474,32 +473,32 @@
             let y = margin;
 
             if (letterhead) {
-                const imageHeight = 20;
+                const imageHeight = 24;
                 doc.addImage(letterhead.dataUrl, 'JPEG', margin, y, availableWidth, imageHeight);
-                y += imageHeight + 2.5;
+                y += imageHeight + 4;
             } else {
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(14);
-                doc.text(orgLines[0], pageWidth / 2, y + 4.5, { align: 'center' });
+                doc.text(orgLines[0], pageWidth / 2, y + 5, { align: 'center' });
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(9);
-                doc.text(orgLines[1], pageWidth / 2, y + 8.5, { align: 'center' });
-                y += 11;
+                doc.text(orgLines[1], pageWidth / 2, y + 10, { align: 'center' });
+                y += 13;
             }
 
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(13);
+            doc.setFontSize(14);
             doc.setTextColor(17, 24, 39);
             const printableHeadingLines = headingLines.length > 0 ? headingLines : [capitalizeFirstLetter(title)];
             printableHeadingLines.forEach((line, index) => {
-                doc.text(line, pageWidth / 2, y + 4 + (index * 5), { align: 'center' });
+                doc.text(line, pageWidth / 2, y + 5 + (index * 5.5), { align: 'center' });
             });
-            y += 5 + (printableHeadingLines.length * 5);
+            y += 6 + (printableHeadingLines.length * 5.5);
 
             doc.setDrawColor(148, 163, 184);
             doc.setLineWidth(0.4);
             doc.line(margin, y, pageWidth - margin, y);
-            y += 3;
+            y += 4;
 
             return y;
         };
@@ -551,7 +550,7 @@
         const drawPageFooter = () => {
             if (!footer.names.length || footer.type === 'none') return;
 
-            const footerY = pageHeight - margin - 20;
+            const footerY = pageHeight - margin - 14;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8.5);
             doc.setTextColor(71, 85, 105);
@@ -582,6 +581,7 @@
             const wrappedCells = row.map((cell, index) => wrapText(cell, columnWidths[index]));
             const rowHeight = Math.max(1, ...wrappedCells.map(lines => lines.length || 1)) * lineHeight + (rowPaddingY * 2);
             const reachedManualPageSize = Number.isFinite(rowsPerPage) && rowsPerPage > 0 && rowsOnPage >= rowsPerPage;
+            const pageContentLimit = pageHeight - margin - footerReserve;
 
             if (y + rowHeight > pageContentLimit || reachedManualPageSize) {
                 drawPageFooter();
