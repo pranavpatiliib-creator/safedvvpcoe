@@ -306,6 +306,19 @@
             .filter(Boolean);
     }
 
+    function getPdfFooterReserve(footer) {
+        if (!footer || footer.type === 'none' || !footer.names?.length) {
+            return 10;
+        }
+
+        const maxLines = Math.max(
+            1,
+            ...(footer.names || []).map((name) => normalizeMultilineFooterText(name).length || 1)
+        );
+
+        return 22 + (maxLines * 5);
+    }
+
     function buildPdfTableData(eventData, questions, responses, columns) {
         const normalizedColumns = normalizePdfColumns(columns, questions);
         const rows = (responses || []).map((response, index) => {
@@ -436,6 +449,7 @@
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 10;
+        const footerReserve = getPdfFooterReserve(footer);
         const availableWidth = pageWidth - (margin * 2);
         const headerFill = [255, 255, 255];
         const headerTextColor = [15, 23, 42];
@@ -459,9 +473,9 @@
             let y = margin;
 
             if (letterhead) {
-                const imageHeight = 30;
+                const imageHeight = 24;
                 doc.addImage(letterhead.dataUrl, 'JPEG', margin, y, availableWidth, imageHeight);
-                y += imageHeight + 8;
+                y += imageHeight + 4;
             } else {
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(14);
@@ -469,22 +483,22 @@
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(9);
                 doc.text(orgLines[1], pageWidth / 2, y + 10, { align: 'center' });
-                y += 16;
+                y += 13;
             }
 
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(15);
+            doc.setFontSize(14);
             doc.setTextColor(17, 24, 39);
             const printableHeadingLines = headingLines.length > 0 ? headingLines : [capitalizeFirstLetter(title)];
             printableHeadingLines.forEach((line, index) => {
-                doc.text(line, pageWidth / 2, y + 6 + (index * 6), { align: 'center' });
+                doc.text(line, pageWidth / 2, y + 5 + (index * 5.5), { align: 'center' });
             });
-            y += 8 + (printableHeadingLines.length * 6);
+            y += 6 + (printableHeadingLines.length * 5.5);
 
             doc.setDrawColor(148, 163, 184);
             doc.setLineWidth(0.4);
             doc.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            y += 4;
 
             return y;
         };
@@ -536,7 +550,7 @@
         const drawPageFooter = () => {
             if (!footer.names.length || footer.type === 'none') return;
 
-            const footerY = pageHeight - margin - 6;
+            const footerY = pageHeight - margin - 14;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8.5);
             doc.setTextColor(71, 85, 105);
@@ -567,8 +581,9 @@
             const wrappedCells = row.map((cell, index) => wrapText(cell, columnWidths[index]));
             const rowHeight = Math.max(1, ...wrappedCells.map(lines => lines.length || 1)) * lineHeight + (rowPaddingY * 2);
             const reachedManualPageSize = Number.isFinite(rowsPerPage) && rowsPerPage > 0 && rowsOnPage >= rowsPerPage;
+            const pageContentLimit = pageHeight - margin - footerReserve;
 
-            if (y + rowHeight > pageHeight - margin || reachedManualPageSize) {
+            if (y + rowHeight > pageContentLimit || reachedManualPageSize) {
                 drawPageFooter();
                 doc.addPage();
                 y = drawPageHeader();
@@ -579,7 +594,7 @@
             y += drawBodyRow(y, row);
             rowsOnPage += 1;
 
-            if (rowIndex < rows.length - 1 && y > pageHeight - margin - 2) {
+            if (rowIndex < rows.length - 1 && y > pageContentLimit) {
                 drawPageFooter();
                 doc.addPage();
                 y = drawPageHeader();
