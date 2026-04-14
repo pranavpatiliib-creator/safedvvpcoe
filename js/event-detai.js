@@ -385,13 +385,31 @@ function createFormField(question, index) {
                     </select>
                     <div id="groupMembersFields${index}" class="group-members-fields" style="display:none;">
                         ${Array.from({ length: maxMembers }, (_, memberIndex) => `
-                            <input
-                                type="text"
-                                id="q${index}_member${memberIndex + 1}"
-                                name="q${index}_member${memberIndex + 1}"
-                                placeholder="Member ${memberIndex + 1} Name"
+                            <div
+                                class="group-member-card"
+                                id="q${index}_memberBlock${memberIndex + 1}"
                                 style="${memberIndex === 0 ? '' : 'display:none;'}"
                             >
+                                <div style="font-weight:600; color:#1e293b; margin-bottom:8px;">Member ${memberIndex + 1}</div>
+                                <input
+                                    type="text"
+                                    id="q${index}_member${memberIndex + 1}_surname"
+                                    name="q${index}_member${memberIndex + 1}_surname"
+                                    placeholder="Surname"
+                                >
+                                <input
+                                    type="text"
+                                    id="q${index}_member${memberIndex + 1}_name"
+                                    name="q${index}_member${memberIndex + 1}_name"
+                                    placeholder="Name"
+                                >
+                                <input
+                                    type="text"
+                                    id="q${index}_member${memberIndex + 1}_father"
+                                    name="q${index}_member${memberIndex + 1}_father"
+                                    placeholder="Father Name"
+                                >
+                            </div>
                         `).join('')}
                     </div>
                 </div>
@@ -415,13 +433,23 @@ function toggleGroupMemberFields(index) {
 
     let memberIndex = 1;
     while (true) {
-        const input = document.getElementById(`q${index}_member${memberIndex}`);
-        if (!input) break;
+        const block = document.getElementById(`q${index}_memberBlock${memberIndex}`);
+        const surnameInput = document.getElementById(`q${index}_member${memberIndex}_surname`);
+        const nameInput = document.getElementById(`q${index}_member${memberIndex}_name`);
+        const fatherInput = document.getElementById(`q${index}_member${memberIndex}_father`);
+        if (!block || !surnameInput || !nameInput || !fatherInput) break;
 
         const isVisible = memberIndex <= count;
-        input.required = isVisible;
-        input.style.display = isVisible ? 'block' : 'none';
-        if (!isVisible) input.value = '';
+        block.style.display = isVisible ? 'block' : 'none';
+        surnameInput.required = isVisible;
+        nameInput.required = isVisible;
+        fatherInput.required = isVisible;
+
+        if (!isVisible) {
+            surnameInput.value = '';
+            nameInput.value = '';
+            fatherInput.value = '';
+        }
         memberIndex += 1;
     }
 }
@@ -456,7 +484,10 @@ function collectFormData() {
             const memberNames = [];
 
             for (let memberIndex = 1; memberIndex <= maxMembers; memberIndex += 1) {
-                const value = document.getElementById(`q${index}_member${memberIndex}`)?.value.trim() || '';
+                const surname = document.getElementById(`q${index}_member${memberIndex}_surname`)?.value.trim() || '';
+                const name = document.getElementById(`q${index}_member${memberIndex}_name`)?.value.trim() || '';
+                const fatherName = document.getElementById(`q${index}_member${memberIndex}_father`)?.value.trim() || '';
+                const value = [surname, name, fatherName].filter(Boolean).join(' ');
                 if (value) memberNames.push(value);
             }
 
